@@ -117,14 +117,16 @@ Download from [Redis for Windows](https://github.com/microsoftarchive/redis/rele
 1. Go to [Upstash Console](https://console.upstash.com/)
 2. Create a new Redis database
 3. Select your region (choose closest to your bot's server)
-4. Copy the connection details
+4. After creating the database, go to the database details page
+5. Look for the **"Connect to your database"** section
+6. Click on the **`ioredis`** tab
+7. Copy the `REDIS_URL` connection string:
 
 ```bash
-# Upstash provides these values
-REDIS_HOST=your-database.upstash.io
-REDIS_PORT=6379
-REDIS_PASSWORD=your_password
+REDIS_URL="rediss://default:your_password@your-database-name.upstash.io:6379"
 ```
+
+> **Note:** The URL starts with `rediss://` (with double 's') which indicates TLS/SSL is enabled.
 
 ### Redis Cloud (by Redis Labs)
 
@@ -151,48 +153,48 @@ REDIS_PASSWORD=your_password
 
 Create or update your `.env` file in the project root:
 
+#### Option 1: Using REDIS_URL (Recommended for Cloud/Upstash)
+
 ```bash
 # Bot Token
 BOT_TOKEN=your_telegram_bot_token
 
-# Redis Configuration
-REDIS_HOST=localhost
-REDIS_PORT=6379
-
-# Optional: If your Redis requires authentication
-REDIS_PASSWORD=your_password
+# Redis Configuration - Single URL (works with Upstash, Redis Cloud, etc.)
+REDIS_URL="rediss://default:your_password@your-host.upstash.io:6379"
 ```
 
-### Update the Code (if using password)
-
-If your Redis instance requires a password, update `src/index.ts`:
-
-```typescript
-const createJob = initJobify({
-  host: process.env.REDIS_HOST || "localhost",
-  port: Number(process.env.REDIS_PORT) || 6379,
-  password: process.env.REDIS_PASSWORD, // Add this line
-});
-```
-
-### For Upstash with TLS
-
-Upstash requires TLS. Update the connection:
-
-```typescript
-const createJob = initJobify({
-  host: process.env.REDIS_HOST || "localhost",
-  port: Number(process.env.REDIS_PORT) || 6379,
-  password: process.env.REDIS_PASSWORD,
-  tls: process.env.REDIS_TLS === "true" ? {} : undefined,
-});
-```
-
-And add to `.env`:
+#### Option 2: Using Host/Port (For Local/Docker)
 
 ```bash
-REDIS_TLS=true
+# Bot Token
+BOT_TOKEN=your_telegram_bot_token
+
+# Redis Configuration - Separate values
+REDIS_HOST=localhost
+REDIS_PORT=6379
 ```
+
+### How It Works
+
+The project automatically detects which configuration to use:
+
+```typescript
+const createJob = initJobify(
+  process.env.REDIS_URL
+    ? { url: process.env.REDIS_URL }
+    : {
+        host: process.env.REDIS_HOST || "localhost",
+        port: Number(process.env.REDIS_PORT) || 6379,
+      },
+);
+```
+
+- If `REDIS_URL` is set → Uses the connection URL (includes TLS, password, everything)
+- If `REDIS_URL` is not set → Falls back to `REDIS_HOST` and `REDIS_PORT`
+
+This makes it simple:
+- **Local/Docker development**: No env vars needed (defaults to localhost:6379)
+- **Production with Upstash**: Just set `REDIS_URL` from the Upstash console
 
 ## Verifying the Connection
 

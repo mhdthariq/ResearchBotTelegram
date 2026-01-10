@@ -8,10 +8,14 @@ import { db } from "./db";
 import { subscriptions } from "./db/schema";
 
 // 1. Setup Scheduler
-const createJob = initJobify({
-  host: process.env.REDIS_HOST || "localhost",
-  port: Number(process.env.REDIS_PORT) || 6379,
-});
+const createJob = initJobify(
+  process.env.REDIS_URL
+    ? { url: process.env.REDIS_URL }
+    : {
+        host: process.env.REDIS_HOST || "localhost",
+        port: Number(process.env.REDIS_PORT) || 6379,
+      },
+);
 
 interface SessionData {
   lastTopic?: string;

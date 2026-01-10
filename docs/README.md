@@ -42,10 +42,11 @@ research-bot/
 | Variable | Description | Required | Default |
 |----------|-------------|----------|---------|
 | `BOT_TOKEN` | Telegram Bot API token | Yes | - |
-| `REDIS_HOST` | Redis server hostname | No | `localhost` |
-| `REDIS_PORT` | Redis server port | No | `6379` |
-| `REDIS_PASSWORD` | Redis password (if required) | No | - |
-| `REDIS_TLS` | Enable TLS for Redis connection | No | `false` |
+| `REDIS_URL` | Redis connection URL (recommended for cloud) | No | - |
+| `REDIS_HOST` | Redis server hostname (if not using URL) | No | `localhost` |
+| `REDIS_PORT` | Redis server port (if not using URL) | No | `6379` |
+
+> **Note:** Use `REDIS_URL` for cloud providers like Upstash (e.g., `rediss://default:password@host:6379`). For local development, you can skip Redis env vars entirely and it will default to `localhost:6379`.
 
 ## Available Scripts
 
