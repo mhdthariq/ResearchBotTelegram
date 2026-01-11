@@ -10,19 +10,26 @@
 		"lint:fix": "bun run lint --fix",
 		"webhook:set": "bun run scripts/setup-webhook.ts set",
 		"webhook:delete": "bun run scripts/setup-webhook.ts delete",
-		"webhook:info": "bun run scripts/setup-webhook.ts info"
+		"webhook:info": "bun run scripts/setup-webhook.ts info",
+		"db:migrate": "bun run src/db/migrate.ts",
+		"db:generate": "drizzle-kit generate",
+		"db:studio": "drizzle-kit studio"
 	},
 	"dependencies": {
 		"@gramio/prompt": "^1.2.1",
 		"@gramio/session": "^0.1.6",
+		"better-sqlite3": "^12.6.0",
+		"drizzle-orm": "^0.45.1",
 		"elysia": "^1.4.21",
 		"fast-xml-parser": "^5.3.3",
 		"gramio": "^0.4.10"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.2.3",
+		"@types/better-sqlite3": "^7.6.13",
 		"@types/bun": "^1.2.21",
 		"@vercel/node": "^5.5.16",
+		"drizzle-kit": "^0.31.8",
 		"typescript": "^5.9.2"
 	}
 }

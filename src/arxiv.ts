@@ -45,16 +45,48 @@ interface ArxivEntry {
 	id: string;
 	published: string;
 	author?: ArxivAuthor | ArxivAuthor[];
-	category?: ArxivCategory | ArxivCategory[];
+	category?: ArxivCategoryEntry | ArxivCategoryEntry[];
 }
 
 interface ArxivAuthor {
 	name: string;
 }
 
-interface ArxivCategory {
+interface ArxivCategoryEntry {
 	"@_term": string;
 }
+
+/**
+ * arXiv category type
+ */
+export type ArxivCategory =
+	| "cs.AI"
+	| "cs.CL"
+	| "cs.CV"
+	| "cs.LG"
+	| "cs.NE"
+	| "cs.RO"
+	| "stat.ML"
+	| "math.OC"
+	| "physics.comp-ph"
+	| "q-bio.NC"
+	| string;
+
+/**
+ * arXiv categories with descriptions
+ */
+export const ARXIV_CATEGORIES: Record<string, string> = {
+	"cs.AI": "Artificial Intelligence",
+	"cs.CL": "Computation and Language (NLP)",
+	"cs.CV": "Computer Vision",
+	"cs.LG": "Machine Learning",
+	"cs.NE": "Neural and Evolutionary Computing",
+	"cs.RO": "Robotics",
+	"stat.ML": "Machine Learning (Statistics)",
+	"math.OC": "Optimization and Control",
+	"physics.comp-ph": "Computational Physics",
+	"q-bio.NC": "Neurons and Cognition",
+};
 
 /**
  * Options for fetching papers
@@ -77,6 +109,34 @@ export interface FetchPapersOptions {
 }
 
 /**
+ * Advanced search options for more specific queries
+ */
+export interface AdvancedSearchOptions {
+	/** General search query */
+	query?: string;
+	/** Search by author name */
+	author?: string;
+	/** Search in title */
+	title?: string;
+	/** Search in abstract */
+	abstract?: string;
+	/** Filter by arXiv category */
+	category?: ArxivCategory;
+	/** Pagination offset (default: 0) */
+	start?: number;
+	/** Maximum results to return (default: 5, max: 100) */
+	maxResults?: number;
+	/** Sort by field (default: submittedDate) */
+	sortBy?: "relevance" | "lastUpdatedDate" | "submittedDate";
+	/** Sort order (default: descending) */
+	sortOrder?: "ascending" | "descending";
+	/** Request timeout in milliseconds (default: 15000) */
+	timeoutMs?: number;
+	/** Skip cache lookup (default: false) */
+	skipCache?: boolean;
+}
+
+/**
  * Builds the arXiv API URL with query parameters
  */
 function buildArxivUrl(options: FetchPapersOptions): string {
@@ -94,6 +154,45 @@ function buildArxivUrl(options: FetchPapersOptions): string {
 		max_results: String(Math.min(max, 100)), // Cap at 100
 		sortBy,
 		sortOrder,
+	});
+
+	return `${ARXIV_BASE_URL}?${params.toString()}`;
+}
+
+/**
+ * Builds the arXiv API URL for advanced search
+ */
+function buildAdvancedSearchUrl(options: AdvancedSearchOptions): string {
+	const queryParts: string[] = [];
+
+	if (options.query) {
+		queryParts.push(`all:${encodeURIComponent(options.query)}`);
+	}
+	if (options.author) {
+		queryParts.push(`au:${encodeURIComponent(options.author)}`);
+	}
+	if (options.title) {
+		queryParts.push(`ti:${encodeURIComponent(options.title)}`);
+	}
+	if (options.abstract) {
+		queryParts.push(`abs:${encodeURIComponent(options.abstract)}`);
+	}
+	if (options.category) {
+		queryParts.push(`cat:${options.category}`);
+	}
+
+	// Join with AND if multiple parts, or use a default query
+	const searchQuery =
+		queryParts.length > 0 ? queryParts.join("+AND+") : "all:*";
+
+	const params = new URLSearchParams({
+		search_query: searchQuery,
+		start: String(options.start || 0),
+		max_results: String(
+			Math.min(options.maxResults || DEFAULT_MAX_RESULTS, 100),
+		),
+		sortBy: options.sortBy || "submittedDate",
+		sortOrder: options.sortOrder || "descending",
 	});
 
 	return `${ARXIV_BASE_URL}?${params.toString()}`;
@@ -403,4 +502,165 @@ export function getRateLimiterStatus(): {
 		waitTimeMs: arxivRateLimiter.getWaitTime(),
 		pendingRequests: arxivRateLimiter.getPendingCount(),
 	};
+}
+
+/**
+ * Search papers with advanced options
+ *
+ * Supports searching by author, title, abstract, and category
+ * in addition to general keyword search.
+ *
+ * @param options - Advanced search options
+ * @returns Array of matching papers
+ *
+ * @example
+ * // Search by author
+ * const papers = await searchPapersAdvanced({ author: "Yoshua Bengio" });
+ *
+ * @example
+ * // Search by category and keyword
+ * const papers = await searchPapersAdvanced({
+ *   query: "transformer",
+ *   category: "cs.CL",
+ *   maxResults: 10,
+ * });
+ */
+export async function searchPapersAdvanced(
+	options: AdvancedSearchOptions,
+): Promise<Paper[]> {
+	const { timeoutMs = DEFAULT_TIMEOUT_MS, skipCache = false } = options;
+
+	// Validate that at least one search criterion is provided
+	if (
+		!options.query &&
+		!options.author &&
+		!options.title &&
+		!options.abstract &&
+		!options.category
+	) {
+		logger.warn("No search criteria provided for advanced search");
+		return [];
+	}
+
+	// Generate a cache key from the options
+	const cacheKey = JSON.stringify({
+		q: options.query,
+		au: options.author,
+		ti: options.title,
+		abs: options.abstract,
+		cat: options.category,
+	});
+
+	// Try cache first
+	const cache = getPaperCache();
+	if (cache && !skipCache) {
+		const cachedPapers = await cache.get(
+			cacheKey,
+			options.start || 0,
+			options.maxResults || DEFAULT_MAX_RESULTS,
+		);
+		if (cachedPapers) {
+			logger.info("Returning cached advanced search results", {
+				options: cacheKey,
+				count: cachedPapers.length,
+			});
+			return cachedPapers;
+		}
+	}
+
+	const url = buildAdvancedSearchUrl(options);
+
+	logger.debug("Fetching papers with advanced search", {
+		options: cacheKey,
+		start: options.start || 0,
+		maxResults: options.maxResults || DEFAULT_MAX_RESULTS,
+	});
+
+	try {
+		const papers = await withRetry(() => fetchWithTimeout(url, timeoutMs), {
+			maxAttempts: 3,
+			baseDelay: 1000,
+			maxDelay: 10000,
+			isRetryable: (error) => {
+				if (isNetworkError(error)) return true;
+				if (error instanceof ArxivApiError && error.statusCode) {
+					return isRetryableStatusCode(error.statusCode);
+				}
+				if (error instanceof Error && error.message.includes("timed out")) {
+					return true;
+				}
+				return false;
+			},
+			operationName: "searchPapersAdvanced",
+		});
+
+		logger.info("Successfully fetched papers with advanced search", {
+			options: cacheKey,
+			count: papers.length,
+		});
+
+		// Cache the results
+		if (cache && papers.length > 0) {
+			await cache.set(
+				cacheKey,
+				options.start || 0,
+				options.maxResults || DEFAULT_MAX_RESULTS,
+				papers,
+			);
+		}
+
+		return papers;
+	} catch (error) {
+		logger.error("Failed to fetch papers with advanced search", {
+			options: cacheKey,
+			error: error instanceof Error ? error.message : String(error),
+		});
+		return [];
+	}
+}
+
+/**
+ * Search papers by author name
+ *
+ * @param authorName - Author name to search for
+ * @param maxResults - Maximum number of results (default: 10)
+ * @returns Array of papers by the author
+ */
+export async function searchByAuthor(
+	authorName: string,
+	maxResults = 10,
+): Promise<Paper[]> {
+	return searchPapersAdvanced({
+		author: authorName,
+		maxResults,
+		sortBy: "submittedDate",
+	});
+}
+
+/**
+ * Search papers by category
+ *
+ * @param category - arXiv category to search
+ * @param maxResults - Maximum number of results (default: 10)
+ * @returns Array of papers in the category
+ */
+export async function searchByCategory(
+	category: ArxivCategory,
+	maxResults = 10,
+): Promise<Paper[]> {
+	return searchPapersAdvanced({
+		category,
+		maxResults,
+		sortBy: "submittedDate",
+	});
+}
+
+/**
+ * Get category description
+ *
+ * @param category - arXiv category code
+ * @returns Human-readable category description
+ */
+export function getCategoryDescription(category: string): string {
+	return ARXIV_CATEGORIES[category] || category;
 }
