@@ -4,24 +4,26 @@
  * Creates database tables if they don't exist.
  * Run this script to initialize or update the database schema.
  *
+ * Uses libSQL for compatibility with both Bun and Node.js (Vercel).
+ *
  * Usage: bun run src/db/migrate.ts
  */
 
-import { Database } from "bun:sqlite";
+import { createClient } from "@libsql/client";
 
-// Get database path from environment or use default
+// Get database URL from environment or use default
 const DATABASE_URL = process.env.DATABASE_URL || "file:./sqlite.db";
-const dbPath = DATABASE_URL.startsWith("file:")
-	? DATABASE_URL.slice(5)
-	: DATABASE_URL;
+const DATABASE_AUTH_TOKEN = process.env.DATABASE_AUTH_TOKEN;
 
 console.log(`📦 Starting database migration...`);
-console.log(`📂 Database path: ${dbPath}`);
+console.log(
+	`📂 Database: ${DATABASE_URL.startsWith("file:") ? DATABASE_URL : DATABASE_URL.replace(/\/\/.*@/, "//***@")}`,
+);
 
-const sqlite = new Database(dbPath);
-
-// Enable WAL mode for better performance
-sqlite.exec("PRAGMA journal_mode = WAL");
+const client = createClient({
+	url: DATABASE_URL,
+	authToken: DATABASE_AUTH_TOKEN,
+});
 
 // Create tables
 const migrations = [
@@ -102,26 +104,33 @@ const migrations = [
 ];
 
 // Run migrations
-let successCount = 0;
-let errorCount = 0;
+async function runMigrations() {
+	let successCount = 0;
+	let errorCount = 0;
 
-for (const sql of migrations) {
-	try {
-		sqlite.exec(sql);
-		successCount++;
-	} catch (error) {
-		errorCount++;
-		console.error(
-			`❌ Migration failed: ${sql.substring(0, 50)}...`,
-			error instanceof Error ? error.message : String(error),
-		);
+	for (const sql of migrations) {
+		try {
+			await client.execute(sql);
+			successCount++;
+		} catch (error) {
+			errorCount++;
+			console.error(
+				`❌ Migration failed: ${sql.substring(0, 50)}...`,
+				error instanceof Error ? error.message : String(error),
+			);
+		}
 	}
+
+	// Close connection
+	client.close();
+
+	console.log(`\n✅ Migration completed!`);
+	console.log(`   - Successful: ${successCount}`);
+	console.log(`   - Failed: ${errorCount}`);
+	console.log(`   - Total: ${migrations.length}`);
 }
 
-// Close connection
-sqlite.close();
-
-console.log(`\n✅ Migration completed!`);
-console.log(`   - Successful: ${successCount}`);
-console.log(`   - Failed: ${errorCount}`);
-console.log(`   - Total: ${migrations.length}`);
+runMigrations().catch((error) => {
+	console.error("Migration failed:", error);
+	process.exit(1);
+});

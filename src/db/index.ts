@@ -1,41 +1,45 @@
 /**
  * Database Connection and Client
  *
- * Initializes the SQLite database using Drizzle ORM with Bun's native SQLite.
- * Provides a singleton database client for the application.
+ * Uses libSQL (Turso) for serverless compatibility with both Bun and Node.js (Vercel).
+ * Supports local SQLite file or remote Turso database.
  */
 
-import { Database } from "bun:sqlite";
-import { drizzle } from "drizzle-orm/bun-sqlite";
+import { createClient } from "@libsql/client";
+import { drizzle } from "drizzle-orm/libsql";
 import { config } from "../config.js";
 import { logger } from "../utils/logger.js";
 import * as schema from "./schema.js";
 
-// Extract database path from DATABASE_URL (format: file:./path/to/db.sqlite)
-function getDatabasePath(): string {
-	const dbUrl = config.DATABASE_URL;
-
-	if (dbUrl.startsWith("file:")) {
-		return dbUrl.slice(5); // Remove "file:" prefix
-	}
-
-	return dbUrl;
+/**
+ * Get the database URL configuration
+ * Supports:
+ * - file:./path/to/db.sqlite (local SQLite)
+ * - libsql://... (Turso remote)
+ * - https://... (Turso remote)
+ */
+function getDatabaseConfig(): { url: string; authToken?: string } {
+	return {
+		url: config.DATABASE_URL,
+		authToken: config.DATABASE_AUTH_TOKEN,
+	};
 }
 
-// Create SQLite connection using Bun's native SQLite
-const sqlite = new Database(getDatabasePath());
-
-// Enable WAL mode for better concurrent performance
-sqlite.exec("PRAGMA journal_mode = WAL");
+// Create libSQL client
+const dbConfig = getDatabaseConfig();
+const client = createClient(dbConfig);
 
 // Create Drizzle client with schema
-export const db = drizzle(sqlite, { schema });
+export const db = drizzle(client, { schema });
 
 // Export schema for convenience
 export * from "./schema.js";
 
 logger.info("Database initialized", {
-	path: getDatabasePath(),
+	url: dbConfig.url.startsWith("file:")
+		? dbConfig.url
+		: dbConfig.url.replace(/\/\/.*@/, "//***@"), // Hide auth in logs
+	hasAuthToken: !!dbConfig.authToken,
 });
 
 /**
@@ -44,7 +48,7 @@ logger.info("Database initialized", {
  */
 export function closeDatabase(): void {
 	try {
-		sqlite.close();
+		client.close();
 		logger.info("Database connection closed");
 	} catch (error) {
 		logger.error("Error closing database", {
@@ -56,9 +60,9 @@ export function closeDatabase(): void {
 /**
  * Check if database is healthy
  */
-export function isDatabaseHealthy(): boolean {
+export async function isDatabaseHealthy(): Promise<boolean> {
 	try {
-		sqlite.query("SELECT 1").get();
+		await client.execute("SELECT 1");
 		return true;
 	} catch {
 		return false;

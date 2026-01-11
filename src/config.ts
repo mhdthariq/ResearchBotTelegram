@@ -3,6 +3,10 @@
  *
  * This module validates all required environment variables at startup
  * and provides type-safe access to configuration values.
+ *
+ * Supports:
+ * - Local SQLite file (file:./sqlite.db)
+ * - Remote Turso database (libsql://... or https://...)
  */
 
 interface Config {
@@ -10,6 +14,7 @@ interface Config {
 	WEBHOOK_SECRET?: string;
 	REDIS_URL?: string;
 	DATABASE_URL: string;
+	DATABASE_AUTH_TOKEN?: string;
 	PORT: number;
 	NODE_ENV: "development" | "production";
 }
@@ -37,7 +42,18 @@ function validateConfig(): Config {
 	const REDIS_URL = process.env.REDIS_URL || undefined;
 
 	// Optional: DATABASE_URL with default
+	// Supports: file:./sqlite.db, libsql://..., https://...
 	const DATABASE_URL = process.env.DATABASE_URL || "file:./sqlite.db";
+
+	// Optional: DATABASE_AUTH_TOKEN (required for remote Turso databases)
+	const DATABASE_AUTH_TOKEN = process.env.DATABASE_AUTH_TOKEN || undefined;
+
+	// Validate that remote databases have an auth token
+	const isRemoteDatabase =
+		DATABASE_URL.startsWith("libsql://") || DATABASE_URL.startsWith("https://");
+	if (isRemoteDatabase && !DATABASE_AUTH_TOKEN) {
+		errors.push("DATABASE_AUTH_TOKEN is required for remote Turso databases");
+	}
 
 	// Optional: PORT with default
 	const portStr = process.env.PORT || "3000";
@@ -66,6 +82,7 @@ function validateConfig(): Config {
 		WEBHOOK_SECRET,
 		REDIS_URL,
 		DATABASE_URL,
+		DATABASE_AUTH_TOKEN,
 		PORT,
 		NODE_ENV: NODE_ENV as "development" | "production",
 	};
@@ -82,4 +99,17 @@ export function isRedisConfigured(): boolean {
 // Helper to check if running in production
 export function isProduction(): boolean {
 	return config.NODE_ENV === "production";
+}
+
+// Helper to check if using a remote database (Turso)
+export function isRemoteDatabase(): boolean {
+	return (
+		config.DATABASE_URL.startsWith("libsql://") ||
+		config.DATABASE_URL.startsWith("https://")
+	);
+}
+
+// Helper to check if using a local file database
+export function isLocalDatabase(): boolean {
+	return config.DATABASE_URL.startsWith("file:");
 }
