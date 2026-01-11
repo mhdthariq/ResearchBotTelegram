@@ -7,12 +7,12 @@
  * import { logger, withRetry } from "./utils";
  */
 
-export type { LogContext, LogEntry, LogLevel } from "./logger";
-export { Logger, logger } from "./logger";
-export type { RetryOptions } from "./retry";
+export type { LogContext, LogEntry, LogLevel } from "./logger.js";
+export { Logger, logger } from "./logger.js";
+export type { RetryOptions } from "./retry.js";
 export {
-	createRetryable,
-	isNetworkError,
-	isRetryableStatusCode,
-	withRetry,
-} from "./retry";
+  createRetryable,
+  isNetworkError,
+  isRetryableStatusCode,
+  withRetry,
+} from "./retry.js";

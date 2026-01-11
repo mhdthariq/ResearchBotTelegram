@@ -5,30 +5,30 @@
  * configurable delays and attempt limits.
  */
 
-import { logger } from "./logger";
+import { logger } from "./logger.js";
 
 export interface RetryOptions {
-	/** Maximum number of retry attempts (default: 3) */
-	maxAttempts?: number;
-	/** Base delay in milliseconds (default: 1000) */
-	baseDelay?: number;
-	/** Maximum delay in milliseconds (default: 10000) */
-	maxDelay?: number;
-	/** Multiplier for exponential backoff (default: 2) */
-	backoffMultiplier?: number;
-	/** Function to determine if error is retryable (default: all errors) */
-	isRetryable?: (error: unknown) => boolean;
-	/** Optional name for logging purposes */
-	operationName?: string;
+  /** Maximum number of retry attempts (default: 3) */
+  maxAttempts?: number;
+  /** Base delay in milliseconds (default: 1000) */
+  baseDelay?: number;
+  /** Maximum delay in milliseconds (default: 10000) */
+  maxDelay?: number;
+  /** Multiplier for exponential backoff (default: 2) */
+  backoffMultiplier?: number;
+  /** Function to determine if error is retryable (default: all errors) */
+  isRetryable?: (error: unknown) => boolean;
+  /** Optional name for logging purposes */
+  operationName?: string;
 }
 
 const DEFAULT_OPTIONS: Required<
-	Omit<RetryOptions, "isRetryable" | "operationName">
+  Omit<RetryOptions, "isRetryable" | "operationName">
 > = {
-	maxAttempts: 3,
-	baseDelay: 1000,
-	maxDelay: 10000,
-	backoffMultiplier: 2,
+  maxAttempts: 3,
+  baseDelay: 1000,
+  maxDelay: 10000,
+  backoffMultiplier: 2,
 };
 
 /**
@@ -46,74 +46,74 @@ const DEFAULT_OPTIONS: Required<
  * );
  */
 export async function withRetry<T>(
-	fn: () => Promise<T>,
-	options: RetryOptions = {},
+  fn: () => Promise<T>,
+  options: RetryOptions = {},
 ): Promise<T> {
-	const {
-		maxAttempts = DEFAULT_OPTIONS.maxAttempts,
-		baseDelay = DEFAULT_OPTIONS.baseDelay,
-		maxDelay = DEFAULT_OPTIONS.maxDelay,
-		backoffMultiplier = DEFAULT_OPTIONS.backoffMultiplier,
-		isRetryable = () => true,
-		operationName = "operation",
-	} = options;
+  const {
+    maxAttempts = DEFAULT_OPTIONS.maxAttempts,
+    baseDelay = DEFAULT_OPTIONS.baseDelay,
+    maxDelay = DEFAULT_OPTIONS.maxDelay,
+    backoffMultiplier = DEFAULT_OPTIONS.backoffMultiplier,
+    isRetryable = () => true,
+    operationName = "operation",
+  } = options;
 
-	let lastError: unknown;
+  let lastError: unknown;
 
-	for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-		try {
-			return await fn();
-		} catch (error) {
-			lastError = error;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
 
-			// Check if we should retry
-			if (!isRetryable(error)) {
-				logger.debug(
-					`${operationName}: Error is not retryable, throwing immediately`,
-					{
-						attempt,
-						error: error instanceof Error ? error.message : String(error),
-					},
-				);
-				throw error;
-			}
+      // Check if we should retry
+      if (!isRetryable(error)) {
+        logger.debug(
+          `${operationName}: Error is not retryable, throwing immediately`,
+          {
+            attempt,
+            error: error instanceof Error ? error.message : String(error),
+          },
+        );
+        throw error;
+      }
 
-			// Check if we've exhausted all attempts
-			if (attempt === maxAttempts) {
-				logger.warn(`${operationName}: All ${maxAttempts} attempts failed`, {
-					error: error instanceof Error ? error.message : String(error),
-				});
-				break;
-			}
+      // Check if we've exhausted all attempts
+      if (attempt === maxAttempts) {
+        logger.warn(`${operationName}: All ${maxAttempts} attempts failed`, {
+          error: error instanceof Error ? error.message : String(error),
+        });
+        break;
+      }
 
-			// Calculate delay with exponential backoff and jitter
-			const exponentialDelay = baseDelay * backoffMultiplier ** (attempt - 1);
-			const jitter = Math.random() * 0.1 * exponentialDelay; // 10% jitter
-			const delay = Math.min(exponentialDelay + jitter, maxDelay);
+      // Calculate delay with exponential backoff and jitter
+      const exponentialDelay = baseDelay * backoffMultiplier ** (attempt - 1);
+      const jitter = Math.random() * 0.1 * exponentialDelay; // 10% jitter
+      const delay = Math.min(exponentialDelay + jitter, maxDelay);
 
-			logger.debug(
-				`${operationName}: Attempt ${attempt} failed, retrying in ${Math.round(delay)}ms`,
-				{
-					attempt,
-					nextAttempt: attempt + 1,
-					maxAttempts,
-					delay: Math.round(delay),
-					error: error instanceof Error ? error.message : String(error),
-				},
-			);
+      logger.debug(
+        `${operationName}: Attempt ${attempt} failed, retrying in ${Math.round(delay)}ms`,
+        {
+          attempt,
+          nextAttempt: attempt + 1,
+          maxAttempts,
+          delay: Math.round(delay),
+          error: error instanceof Error ? error.message : String(error),
+        },
+      );
 
-			await sleep(delay);
-		}
-	}
+      await sleep(delay);
+    }
+  }
 
-	throw lastError;
+  throw lastError;
 }
 
 /**
  * Sleep for specified milliseconds
  */
 function sleep(ms: number): Promise<void> {
-	return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
@@ -131,49 +131,49 @@ function sleep(ms: number): Promise<void> {
  * const response = await retryableFetch("https://api.example.com");
  */
 export function createRetryable<TArgs extends unknown[], TResult>(
-	fn: (...args: TArgs) => Promise<TResult>,
-	options: RetryOptions = {},
+  fn: (...args: TArgs) => Promise<TResult>,
+  options: RetryOptions = {},
 ): (...args: TArgs) => Promise<TResult> {
-	return (...args: TArgs) => withRetry(() => fn(...args), options);
+  return (...args: TArgs) => withRetry(() => fn(...args), options);
 }
 
 /**
  * Utility to check if an error is a network error (typically retryable)
  */
 export function isNetworkError(error: unknown): boolean {
-	if (error instanceof Error) {
-		const networkErrorMessages = [
-			"fetch failed",
-			"network error",
-			"ECONNRESET",
-			"ECONNREFUSED",
-			"ETIMEDOUT",
-			"ENOTFOUND",
-			"socket hang up",
-		];
+  if (error instanceof Error) {
+    const networkErrorMessages = [
+      "fetch failed",
+      "network error",
+      "ECONNRESET",
+      "ECONNREFUSED",
+      "ETIMEDOUT",
+      "ENOTFOUND",
+      "socket hang up",
+    ];
 
-		return networkErrorMessages.some(
-			(msg) =>
-				error.message.toLowerCase().includes(msg.toLowerCase()) ||
-				error.name.toLowerCase().includes(msg.toLowerCase()),
-		);
-	}
-	return false;
+    return networkErrorMessages.some(
+      (msg) =>
+        error.message.toLowerCase().includes(msg.toLowerCase()) ||
+        error.name.toLowerCase().includes(msg.toLowerCase()),
+    );
+  }
+  return false;
 }
 
 /**
  * Utility to check if an HTTP status code is retryable
  */
 export function isRetryableStatusCode(statusCode: number): boolean {
-	// Retry on server errors (5xx) and some client errors
-	const retryableCodes = [
-		408, // Request Timeout
-		429, // Too Many Requests
-		500, // Internal Server Error
-		502, // Bad Gateway
-		503, // Service Unavailable
-		504, // Gateway Timeout
-	];
+  // Retry on server errors (5xx) and some client errors
+  const retryableCodes = [
+    408, // Request Timeout
+    429, // Too Many Requests
+    500, // Internal Server Error
+    502, // Bad Gateway
+    503, // Service Unavailable
+    504, // Gateway Timeout
+  ];
 
-	return retryableCodes.includes(statusCode);
+  return retryableCodes.includes(statusCode);
 }

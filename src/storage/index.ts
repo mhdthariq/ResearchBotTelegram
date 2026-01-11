@@ -8,7 +8,7 @@
  */
 
 export {
-	checkRedisConnection,
-	createRedisStorage,
-	UpstashRedisStorage,
-} from "./redis";
+  checkRedisConnection,
+  createRedisStorage,
+  UpstashRedisStorage,
+} from "./redis.js";
