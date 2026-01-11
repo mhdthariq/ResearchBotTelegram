@@ -6,69 +6,70 @@ Welcome to the Research Bot documentation! This folder contains guides and refer
 
 | Document | Description |
 |----------|-------------|
-| [Redis Setup](./redis-setup.md) | How to set up Redis for job scheduling (Docker, local, cloud) |
+| [Webhook Deployment](./vercel-deployment.md) | How to deploy with webhooks (Elysia or Vercel) |
 
 ## Quick Start
 
-1. **Set up Redis** - Follow the [Redis Setup Guide](./redis-setup.md)
-2. **Configure environment** - Copy `.env.example` to `.env` and fill in your values
-3. **Install dependencies** - Run `bun install`
-4. **Run migrations** - Run `bun run migrate`
-5. **Start the bot** - Run `bun run dev`
+1. **Install dependencies** - Run `bun install`
+2. **Set environment variables** - Create `.env` with `BOT_TOKEN`
+3. **Start the bot** - Run `bun dev`
 
 ## Project Structure
 
 ```
 research-bot/
 ├── docs/                   # Documentation (you are here)
+├── api/                    # Vercel serverless functions
+│   └── webhook.ts          # Vercel webhook endpoint
+├── scripts/                # Utility scripts
+│   └── setup-webhook.ts    # Webhook management script
 ├── src/
-│   ├── db/                 # Database configuration and schema
-│   │   ├── index.ts        # Drizzle database client
-│   │   └── schema.ts       # Database schema definitions
-│   ├── services/           # Business logic services
-│   ├── shared/             # Shared utilities
+│   ├── bot/
+│   │   └── index.ts        # Bot instance and command handlers
 │   ├── arxiv.ts            # ArXiv API integration
-│   ├── bot.ts              # Bot instance configuration
-│   ├── config.ts           # Environment configuration
-│   └── index.ts            # Main entry point
-├── drizzle/                # Database migrations
-├── .env                    # Environment variables (create from .env.example)
+│   ├── index.ts            # Entry point (polling mode)
+│   └── webhook.ts          # Elysia webhook server
 ├── package.json            # Dependencies and scripts
-└── drizzle.config.ts       # Drizzle ORM configuration
+├── vercel.json             # Vercel configuration
+└── tsconfig.json           # TypeScript configuration
 ```
 
 ## Environment Variables
 
-| Variable | Description | Required | Default |
-|----------|-------------|----------|---------|
-| `BOT_TOKEN` | Telegram Bot API token | Yes | - |
-| `REDIS_URL` | Redis connection URL (recommended for cloud) | No | - |
-| `REDIS_HOST` | Redis server hostname (if not using URL) | No | `localhost` |
-| `REDIS_PORT` | Redis server port (if not using URL) | No | `6379` |
-
-> **Note:** Use `REDIS_URL` for cloud providers like Upstash (e.g., `rediss://default:password@host:6379`). For local development, you can skip Redis env vars entirely and it will default to `localhost:6379`.
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `BOT_TOKEN` | Yes | - | Telegram Bot API token |
+| `WEBHOOK_SECRET` | No | - | Secret for webhook verification |
+| `PORT` | No | `3000` | Server port for webhook mode |
 
 ## Available Scripts
 
 | Script | Description |
 |--------|-------------|
-| `bun run dev` | Start bot in development mode with hot reload |
-| `bun run start` | Run migrations and start bot in production |
+| `bun dev` | Start bot in polling mode with hot reload |
+| `bun run dev:webhook` | Start Elysia webhook server with hot reload |
+| `bun run start` | Start bot in polling mode (production) |
+| `bun run start:webhook` | Start Elysia webhook server (production) |
 | `bun run lint` | Check code with Biome linter |
 | `bun run lint:fix` | Auto-fix linting issues |
-| `bun run generate` | Generate new database migration |
-| `bun run push` | Push schema changes to database |
-| `bun run migrate` | Run pending migrations |
-| `bun run studio` | Open Drizzle Studio (database GUI) |
+| `bun run webhook:set <url>` | Register webhook URL with Telegram |
+| `bun run webhook:delete` | Remove webhook (switch to polling) |
+| `bun run webhook:info` | Get current webhook status |
 
 ## Features
 
 - 🔍 **Paper Search** - Search arXiv for research papers on any topic
 - 📚 **Pagination** - Load more results with the `/more` command
-- 🔔 **Subscriptions** - Get periodic updates on topics you care about
-- 🗑️ **Unsubscribe** - Stop receiving updates for specific topics
 - ⌨️ **Interactive Buttons** - User-friendly inline keyboard interface
+
+## Bot Commands
+
+| Command | Description |
+|---------|-------------|
+| `/start` | Show welcome message with buttons |
+| `/search [topic]` | Search for papers on a topic |
+| `/more` | Load more results from last search |
 
 ## Need Help?
 
-If you encounter any issues, check the troubleshooting section in the relevant documentation or open an issue in the repository.
+If you encounter any issues, check the troubleshooting section in the [Webhook Deployment Guide](./vercel-deployment.md) or open an issue in the repository.

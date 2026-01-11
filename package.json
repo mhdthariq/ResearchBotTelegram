@@ -1,33 +1,28 @@
 {
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "dev": "bun --watch src/index.ts",
-    "start": "bun x drizzle-kit migrate && NODE_ENV=production bun src/index.ts",
-    "lint": "bun x @biomejs/biome check",
-    "lint:fix": "bun run lint --fix",
-    "generate": "bun x drizzle-kit generate",
-    "push": "bun x drizzle-kit push",
-    "migrate": "bun x drizzle-kit migrate",
-    "studio": "bun x drizzle-kit studio"
-  },
-  "dependencies": {
-    "@gramio/auto-retry": "^0.0.3",
-    "@gramio/pagination": "^0.0.8",
-    "@gramio/prompt": "^1.2.1",
-    "@gramio/session": "^0.1.6",
-    "drizzle-kit": "^0.31.4",
-    "drizzle-orm": "^0.44.5",
-    "env-var": "^7.5.0",
-    "fast-xml-parser": "^5.3.3",
-    "gramio": "^0.4.10",
-    "ioredis": "^5.7.0",
-    "jobify": "^0.1.6"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "^2.2.3",
-    "@types/bun": "^1.2.21",
-    "better-sqlite3": "^12.5.0",
-    "typescript": "^5.9.2"
-  }
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "bun --watch src/index.ts",
+		"dev:webhook": "bun --watch src/webhook.ts",
+		"start": "NODE_ENV=production bun src/index.ts",
+		"start:webhook": "NODE_ENV=production bun src/webhook.ts",
+		"lint": "bun x @biomejs/biome check",
+		"lint:fix": "bun run lint --fix",
+		"webhook:set": "bun run scripts/setup-webhook.ts set",
+		"webhook:delete": "bun run scripts/setup-webhook.ts delete",
+		"webhook:info": "bun run scripts/setup-webhook.ts info"
+	},
+	"dependencies": {
+		"@gramio/prompt": "^1.2.1",
+		"@gramio/session": "^0.1.6",
+		"elysia": "^1.4.21",
+		"fast-xml-parser": "^5.3.3",
+		"gramio": "^0.4.10"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.2.3",
+		"@types/bun": "^1.2.21",
+		"@vercel/node": "^5.5.16",
+		"typescript": "^5.9.2"
+	}
 }
