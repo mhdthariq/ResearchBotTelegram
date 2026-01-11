@@ -17,6 +17,22 @@ export {};
  *   bun run scripts/setup-webhook.ts info
  */
 
+interface TelegramResponse {
+	ok: boolean;
+	description?: string;
+	result?: WebhookInfo;
+}
+
+interface WebhookInfo {
+	url: string;
+	has_custom_certificate: boolean;
+	pending_update_count: number;
+	last_error_date?: number;
+	last_error_message?: string;
+	allowed_updates?: string[];
+	ip_address?: string;
+}
+
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET;
 
@@ -51,7 +67,7 @@ async function setWebhook(url: string) {
 		body: JSON.stringify(params),
 	});
 
-	const result = await response.json();
+	const result = (await response.json()) as TelegramResponse;
 
 	if (result.ok) {
 		console.log("✅ Webhook set successfully!");
@@ -72,7 +88,7 @@ async function deleteWebhook() {
 		method: "POST",
 	});
 
-	const result = await response.json();
+	const result = (await response.json()) as TelegramResponse;
 
 	if (result.ok) {
 		console.log("✅ Webhook deleted successfully!");
@@ -87,9 +103,9 @@ async function getWebhookInfo() {
 	console.log("ℹ️  Getting webhook info...\n");
 
 	const response = await fetch(`${TELEGRAM_API}/getWebhookInfo`);
-	const result = await response.json();
+	const result = (await response.json()) as TelegramResponse;
 
-	if (result.ok) {
+	if (result.ok && result.result) {
 		const info = result.result;
 		console.log("Webhook Information:");
 		console.log("────────────────────");

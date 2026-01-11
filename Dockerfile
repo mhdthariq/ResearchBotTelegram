@@ -31,7 +31,13 @@ RUN mkdir -p /usr/src/app/src
 COPY --from=prerelease /usr/src/app/src ./src
 COPY --from=prerelease /usr/src/app/package.json .
 COPY --from=prerelease /usr/src/app/tsconfig.json .
-COPY --from=prerelease /usr/src/app/drizzle ./drizzle
-COPY --from=prerelease /usr/src/app/drizzle.config.ts .
 
-ENTRYPOINT [ "bun", "start" ]
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:3000/health || exit 1
+
+# Expose port for webhook server
+EXPOSE 3000
+
+# Default to webhook mode for production
+ENTRYPOINT [ "bun", "run", "start:webhook" ]

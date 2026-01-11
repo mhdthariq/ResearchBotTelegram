@@ -1,0 +1,85 @@
+/**
+ * Configuration module with environment variable validation
+ *
+ * This module validates all required environment variables at startup
+ * and provides type-safe access to configuration values.
+ */
+
+interface Config {
+	BOT_TOKEN: string;
+	WEBHOOK_SECRET?: string;
+	REDIS_URL?: string;
+	DATABASE_URL: string;
+	PORT: number;
+	NODE_ENV: "development" | "production";
+}
+
+class ConfigError extends Error {
+	constructor(message: string) {
+		super(message);
+		this.name = "ConfigError";
+	}
+}
+
+function validateConfig(): Config {
+	const errors: string[] = [];
+
+	// Required: BOT_TOKEN
+	const BOT_TOKEN = process.env.BOT_TOKEN;
+	if (!BOT_TOKEN || BOT_TOKEN.trim() === "") {
+		errors.push("BOT_TOKEN is required");
+	}
+
+	// Optional: WEBHOOK_SECRET
+	const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || undefined;
+
+	// Optional: REDIS_URL (for Upstash Redis)
+	const REDIS_URL = process.env.REDIS_URL || undefined;
+
+	// Optional: DATABASE_URL with default
+	const DATABASE_URL = process.env.DATABASE_URL || "file:./sqlite.db";
+
+	// Optional: PORT with default
+	const portStr = process.env.PORT || "3000";
+	const PORT = Number.parseInt(portStr, 10);
+	if (Number.isNaN(PORT) || PORT < 1 || PORT > 65535) {
+		errors.push(`PORT must be a valid port number (1-65535), got: ${portStr}`);
+	}
+
+	// Optional: NODE_ENV with default
+	const NODE_ENV = process.env.NODE_ENV || "development";
+	if (NODE_ENV !== "development" && NODE_ENV !== "production") {
+		errors.push(
+			`NODE_ENV must be "development" or "production", got: ${NODE_ENV}`,
+		);
+	}
+
+	// Throw all errors at once
+	if (errors.length > 0) {
+		throw new ConfigError(
+			`Configuration validation failed:\n${errors.map((e) => `  - ${e}`).join("\n")}`,
+		);
+	}
+
+	return {
+		BOT_TOKEN: BOT_TOKEN as string,
+		WEBHOOK_SECRET,
+		REDIS_URL,
+		DATABASE_URL,
+		PORT,
+		NODE_ENV: NODE_ENV as "development" | "production",
+	};
+}
+
+// Validate and export config on module load
+export const config = validateConfig();
+
+// Helper to check if Redis is configured
+export function isRedisConfigured(): boolean {
+	return !!config.REDIS_URL;
+}
+
+// Helper to check if running in production
+export function isProduction(): boolean {
+	return config.NODE_ENV === "production";
+}
