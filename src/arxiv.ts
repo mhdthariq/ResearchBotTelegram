@@ -1,17 +1,20 @@
 /**
- * arXiv API client with retry, timeout, and rate limiting
+ * arXiv API client with retry, timeout, rate limiting, and caching
  *
  * Provides reliable access to the arXiv API with proper error handling,
- * automatic retries, and rate limiting to respect arXiv's API guidelines.
+ * automatic retries, rate limiting to respect arXiv's API guidelines,
+ * and caching to reduce API calls.
  */
 
 import { XMLParser } from "fast-xml-parser";
+import { getPaperCache } from "./cache/paperCache.js";
 import { ArxivApiError } from "./errors.js";
 import { logger } from "./utils/logger.js";
+import { arxivRateLimiter } from "./utils/rateLimiter.js";
 import {
-  isNetworkError,
-  isRetryableStatusCode,
-  withRetry,
+	isNetworkError,
+	isRetryableStatusCode,
+	withRetry,
 } from "./utils/retry.js";
 
 const parser = new XMLParser({ ignoreAttributes: false });
@@ -25,109 +28,111 @@ const DEFAULT_MAX_RESULTS = 5;
  * Parsed paper data from arXiv
  */
 export interface Paper {
-  title: string;
-  summary: string;
-  link: string;
-  published: string;
-  authors?: string[];
-  categories?: string[];
+	title: string;
+	summary: string;
+	link: string;
+	published: string;
+	authors?: string[];
+	categories?: string[];
 }
 
 /**
  * Raw arXiv entry from XML response
  */
 interface ArxivEntry {
-  title: string;
-  summary: string;
-  id: string;
-  published: string;
-  author?: ArxivAuthor | ArxivAuthor[];
-  category?: ArxivCategory | ArxivCategory[];
+	title: string;
+	summary: string;
+	id: string;
+	published: string;
+	author?: ArxivAuthor | ArxivAuthor[];
+	category?: ArxivCategory | ArxivCategory[];
 }
 
 interface ArxivAuthor {
-  name: string;
+	name: string;
 }
 
 interface ArxivCategory {
-  "@_term": string;
+	"@_term": string;
 }
 
 /**
  * Options for fetching papers
  */
 export interface FetchPapersOptions {
-  /** Search query topic */
-  topic: string;
-  /** Pagination offset (default: 0) */
-  start?: number;
-  /** Maximum results to return (default: 5, max: 100) */
-  max?: number;
-  /** Request timeout in milliseconds (default: 15000) */
-  timeoutMs?: number;
-  /** Sort by field (default: submittedDate) */
-  sortBy?: "relevance" | "lastUpdatedDate" | "submittedDate";
-  /** Sort order (default: descending) */
-  sortOrder?: "ascending" | "descending";
+	/** Search query topic */
+	topic: string;
+	/** Pagination offset (default: 0) */
+	start?: number;
+	/** Maximum results to return (default: 5, max: 100) */
+	max?: number;
+	/** Request timeout in milliseconds (default: 15000) */
+	timeoutMs?: number;
+	/** Sort by field (default: submittedDate) */
+	sortBy?: "relevance" | "lastUpdatedDate" | "submittedDate";
+	/** Sort order (default: descending) */
+	sortOrder?: "ascending" | "descending";
+	/** Skip cache lookup (default: false) */
+	skipCache?: boolean;
 }
 
 /**
  * Builds the arXiv API URL with query parameters
  */
 function buildArxivUrl(options: FetchPapersOptions): string {
-  const {
-    topic,
-    start = 0,
-    max = DEFAULT_MAX_RESULTS,
-    sortBy = "submittedDate",
-    sortOrder = "descending",
-  } = options;
+	const {
+		topic,
+		start = 0,
+		max = DEFAULT_MAX_RESULTS,
+		sortBy = "submittedDate",
+		sortOrder = "descending",
+	} = options;
 
-  const params = new URLSearchParams({
-    search_query: `all:${topic}`,
-    start: String(start),
-    max_results: String(Math.min(max, 100)), // Cap at 100
-    sortBy,
-    sortOrder,
-  });
+	const params = new URLSearchParams({
+		search_query: `all:${topic}`,
+		start: String(start),
+		max_results: String(Math.min(max, 100)), // Cap at 100
+		sortBy,
+		sortOrder,
+	});
 
-  return `${ARXIV_BASE_URL}?${params.toString()}`;
+	return `${ARXIV_BASE_URL}?${params.toString()}`;
 }
 
 /**
  * Parses an arXiv entry into a Paper object
  */
 function parseEntry(entry: ArxivEntry): Paper {
-  // Parse authors
-  let authors: string[] | undefined;
-  if (entry.author) {
-    const authorArray = Array.isArray(entry.author)
-      ? entry.author
-      : [entry.author];
-    authors = authorArray.map((a) => a.name);
-  }
+	// Parse authors
+	let authors: string[] | undefined;
+	if (entry.author) {
+		const authorArray = Array.isArray(entry.author)
+			? entry.author
+			: [entry.author];
+		authors = authorArray.map((a) => a.name);
+	}
 
-  // Parse categories
-  let categories: string[] | undefined;
-  if (entry.category) {
-    const categoryArray = Array.isArray(entry.category)
-      ? entry.category
-      : [entry.category];
-    categories = categoryArray.map((c) => c["@_term"]);
-  }
+	// Parse categories
+	let categories: string[] | undefined;
+	if (entry.category) {
+		const categoryArray = Array.isArray(entry.category)
+			? entry.category
+			: [entry.category];
+		categories = categoryArray.map((c) => c["@_term"]);
+	}
 
-  return {
-    title: entry.title.replace(/\n/g, " ").trim(),
-    summary: entry.summary.trim(),
-    link: entry.id,
-    published: entry.published.split("T")[0] ?? entry.published,
-    authors,
-    categories,
-  };
+	return {
+		title: entry.title.replace(/\n/g, " ").trim(),
+		summary: entry.summary.trim(),
+		link: entry.id,
+		published: entry.published.split("T")[0] ?? entry.published,
+		authors,
+		categories,
+	};
 }
 
 /**
- * Fetches papers from arXiv with timeout
+ * Fetches papers from arXiv with timeout and rate limiting
  *
  * @param url - The arXiv API URL
  * @param timeoutMs - Timeout in milliseconds
@@ -135,81 +140,84 @@ function parseEntry(entry: ArxivEntry): Paper {
  * @throws {ArxivApiError} When the request fails
  */
 async function fetchWithTimeout(
-  url: string,
-  timeoutMs: number,
+	url: string,
+	timeoutMs: number,
 ): Promise<Paper[]> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+	// Apply rate limiting before making the request
+	await arxivRateLimiter.throttle();
 
-  try {
-    const response = await fetch(url, {
-      signal: controller.signal,
-      headers: {
-        "User-Agent": "ResearchBot/1.0 (Telegram Bot)",
-      },
-    });
+	const controller = new AbortController();
+	const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
-    if (!response.ok) {
-      throw new ArxivApiError(
-        `arXiv API returned status ${response.status}`,
-        response.status,
-      );
-    }
+	try {
+		const response = await fetch(url, {
+			signal: controller.signal,
+			headers: {
+				"User-Agent": "ResearchBot/1.0 (Telegram Bot)",
+			},
+		});
 
-    const xml = await response.text();
-    const result = parser.parse(xml);
-    const entries = result.feed?.entry;
+		if (!response.ok) {
+			throw new ArxivApiError(
+				`arXiv API returned status ${response.status}`,
+				response.status,
+			);
+		}
 
-    if (!entries) {
-      logger.debug("No entries found in arXiv response");
-      return [];
-    }
+		const xml = await response.text();
+		const result = parser.parse(xml);
+		const entries = result.feed?.entry;
 
-    // Ensure we always have an array (XML parser returns object if only 1 result)
-    const papers = Array.isArray(entries) ? entries : [entries];
+		if (!entries) {
+			logger.debug("No entries found in arXiv response");
+			return [];
+		}
 
-    return papers.map(parseEntry);
-  } catch (error) {
-    if (error instanceof Error && error.name === "AbortError") {
-      throw new ArxivApiError(
-        `arXiv API request timed out after ${timeoutMs}ms`,
-        undefined,
-        error,
-      );
-    }
+		// Ensure we always have an array (XML parser returns object if only 1 result)
+		const papers = Array.isArray(entries) ? entries : [entries];
 
-    if (error instanceof ArxivApiError) {
-      throw error;
-    }
+		return papers.map(parseEntry);
+	} catch (error) {
+		if (error instanceof Error && error.name === "AbortError") {
+			throw new ArxivApiError(
+				`arXiv API request timed out after ${timeoutMs}ms`,
+				undefined,
+				error,
+			);
+		}
 
-    throw new ArxivApiError(
-      `Failed to fetch from arXiv: ${error instanceof Error ? error.message : "Unknown error"}`,
-      undefined,
-      error instanceof Error ? error : undefined,
-    );
-  } finally {
-    clearTimeout(timeout);
-  }
+		if (error instanceof ArxivApiError) {
+			throw error;
+		}
+
+		throw new ArxivApiError(
+			`Failed to fetch from arXiv: ${error instanceof Error ? error.message : "Unknown error"}`,
+			undefined,
+			error instanceof Error ? error : undefined,
+		);
+	} finally {
+		clearTimeout(timeout);
+	}
 }
 
 /**
  * Determines if an arXiv API error is retryable
  */
 function isArxivErrorRetryable(error: unknown): boolean {
-  if (isNetworkError(error)) {
-    return true;
-  }
+	if (isNetworkError(error)) {
+		return true;
+	}
 
-  if (error instanceof ArxivApiError && error.statusCode) {
-    return isRetryableStatusCode(error.statusCode);
-  }
+	if (error instanceof ArxivApiError && error.statusCode) {
+		return isRetryableStatusCode(error.statusCode);
+	}
 
-  // Retry on timeout errors
-  if (error instanceof Error && error.message.includes("timed out")) {
-    return true;
-  }
+	// Retry on timeout errors
+	if (error instanceof Error && error.message.includes("timed out")) {
+		return true;
+	}
 
-  return false;
+	return false;
 }
 
 /**
@@ -218,6 +226,8 @@ function isArxivErrorRetryable(error: unknown): boolean {
  * Features:
  * - Automatic retry with exponential backoff
  * - Request timeout
+ * - Rate limiting (1 request per 3 seconds)
+ * - Result caching (when Redis is configured)
  * - Proper error handling
  *
  * @param topic - Search query topic
@@ -229,13 +239,13 @@ function isArxivErrorRetryable(error: unknown): boolean {
  * const papers = await fetchPapers("machine learning", 0, 10);
  */
 export async function fetchPapers(
-  topic: string,
-  start = 0,
-  max = DEFAULT_MAX_RESULTS,
+	topic: string,
+	start = 0,
+	max = DEFAULT_MAX_RESULTS,
 ): Promise<Paper[]> {
-  const options: FetchPapersOptions = { topic, start, max };
+	const options: FetchPapersOptions = { topic, start, max };
 
-  return fetchPapersAdvanced(options);
+	return fetchPapersAdvanced(options);
 }
 
 /**
@@ -252,49 +262,75 @@ export async function fetchPapers(
  * });
  */
 export async function fetchPapersAdvanced(
-  options: FetchPapersOptions,
+	options: FetchPapersOptions,
 ): Promise<Paper[]> {
-  const { topic, timeoutMs = DEFAULT_TIMEOUT_MS } = options;
+	const {
+		topic,
+		start = 0,
+		max = DEFAULT_MAX_RESULTS,
+		timeoutMs = DEFAULT_TIMEOUT_MS,
+		skipCache = false,
+	} = options;
 
-  // Validate input
-  if (!topic || topic.trim() === "") {
-    logger.warn("Empty search topic provided");
-    return [];
-  }
+	// Validate input
+	if (!topic || topic.trim() === "") {
+		logger.warn("Empty search topic provided");
+		return [];
+	}
 
-  const url = buildArxivUrl(options);
+	// Try to get from cache first (if not skipped)
+	const cache = getPaperCache();
+	if (cache && !skipCache) {
+		const cachedPapers = await cache.get(topic, start, max);
+		if (cachedPapers) {
+			logger.info("Returning cached papers", {
+				topic,
+				start,
+				max,
+				count: cachedPapers.length,
+			});
+			return cachedPapers;
+		}
+	}
 
-  logger.debug("Fetching papers from arXiv", {
-    topic,
-    start: options.start || 0,
-    max: options.max || DEFAULT_MAX_RESULTS,
-  });
+	const url = buildArxivUrl(options);
 
-  try {
-    const papers = await withRetry(() => fetchWithTimeout(url, timeoutMs), {
-      maxAttempts: 3,
-      baseDelay: 1000,
-      maxDelay: 10000,
-      isRetryable: isArxivErrorRetryable,
-      operationName: "fetchPapers",
-    });
+	logger.debug("Fetching papers from arXiv", {
+		topic,
+		start,
+		max,
+	});
 
-    logger.info("Successfully fetched papers from arXiv", {
-      topic,
-      count: papers.length,
-    });
+	try {
+		const papers = await withRetry(() => fetchWithTimeout(url, timeoutMs), {
+			maxAttempts: 3,
+			baseDelay: 1000,
+			maxDelay: 10000,
+			isRetryable: isArxivErrorRetryable,
+			operationName: "fetchPapers",
+		});
 
-    return papers;
-  } catch (error) {
-    logger.error("Failed to fetch papers from arXiv", {
-      topic,
-      error: error instanceof Error ? error.message : String(error),
-    });
+		logger.info("Successfully fetched papers from arXiv", {
+			topic,
+			count: papers.length,
+		});
 
-    // Return empty array instead of throwing to maintain backward compatibility
-    // The error is already logged, so callers can handle empty results gracefully
-    return [];
-  }
+		// Cache the results
+		if (cache && papers.length > 0) {
+			await cache.set(topic, start, max, papers);
+		}
+
+		return papers;
+	} catch (error) {
+		logger.error("Failed to fetch papers from arXiv", {
+			topic,
+			error: error instanceof Error ? error.message : String(error),
+		});
+
+		// Return empty array instead of throwing to maintain backward compatibility
+		// The error is already logged, so callers can handle empty results gracefully
+		return [];
+	}
 }
 
 /**
@@ -307,31 +343,34 @@ export async function fetchPapersAdvanced(
  * const paper = await fetchPaperById("2301.00001");
  */
 export async function fetchPaperById(arxivId: string): Promise<Paper | null> {
-  if (!arxivId || arxivId.trim() === "") {
-    return null;
-  }
+	if (!arxivId || arxivId.trim() === "") {
+		return null;
+	}
 
-  const url = `${ARXIV_BASE_URL}?id_list=${encodeURIComponent(arxivId)}`;
+	// Apply rate limiting
+	await arxivRateLimiter.throttle();
 
-  try {
-    const papers = await withRetry(
-      () => fetchWithTimeout(url, DEFAULT_TIMEOUT_MS),
-      {
-        maxAttempts: 2,
-        baseDelay: 1000,
-        isRetryable: isArxivErrorRetryable,
-        operationName: "fetchPaperById",
-      },
-    );
+	const url = `${ARXIV_BASE_URL}?id_list=${encodeURIComponent(arxivId)}`;
 
-    return papers[0] || null;
-  } catch (error) {
-    logger.error("Failed to fetch paper by ID", {
-      arxivId,
-      error: error instanceof Error ? error.message : String(error),
-    });
-    return null;
-  }
+	try {
+		const papers = await withRetry(
+			() => fetchWithTimeout(url, DEFAULT_TIMEOUT_MS),
+			{
+				maxAttempts: 2,
+				baseDelay: 1000,
+				isRetryable: isArxivErrorRetryable,
+				operationName: "fetchPaperById",
+			},
+		);
+
+		return papers[0] || null;
+	} catch (error) {
+		logger.error("Failed to fetch paper by ID", {
+			arxivId,
+			error: error instanceof Error ? error.message : String(error),
+		});
+		return null;
+	}
 }
 
 /**
@@ -342,11 +381,26 @@ export async function fetchPaperById(arxivId: string): Promise<Paper | null> {
  * @returns Truncated summary with ellipsis
  */
 export function formatSummary(summary: string, maxLength = 200): string {
-  const cleaned = summary.trim().replace(/\n/g, " ").replace(/\s+/g, " ");
+	const cleaned = summary.trim().replace(/\n/g, " ").replace(/\s+/g, " ");
 
-  if (cleaned.length <= maxLength) {
-    return cleaned;
-  }
+	if (cleaned.length <= maxLength) {
+		return cleaned;
+	}
 
-  return `${cleaned.substring(0, maxLength)}...`;
+	return `${cleaned.substring(0, maxLength)}...`;
+}
+
+/**
+ * Get rate limiter status for monitoring
+ */
+export function getRateLimiterStatus(): {
+	canProceed: boolean;
+	waitTimeMs: number;
+	pendingRequests: number;
+} {
+	return {
+		canProceed: arxivRateLimiter.canProceed(),
+		waitTimeMs: arxivRateLimiter.getWaitTime(),
+		pendingRequests: arxivRateLimiter.getPendingCount(),
+	};
 }
