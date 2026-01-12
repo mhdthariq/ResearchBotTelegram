@@ -3,13 +3,25 @@
  *
  * This file starts the bot in webhook mode with Elysia,
  * suitable for production deployments behind a reverse proxy.
+ *
+ * Endpoints:
+ * - GET /           - Status check
+ * - POST /webhook   - Telegram webhook endpoint
+ * - GET /health     - Simple health check
+ * - GET /health/detailed - Detailed health with dependencies
+ * - GET /metrics    - Application metrics (JSON)
+ * - GET /metrics/prometheus - Prometheus format metrics
+ * - GET /ready      - Readiness probe
+ * - GET /live       - Liveness probe
  */
 
 import { Elysia } from "elysia";
 import { bot } from "./bot";
 import { config, isRedisConfigured } from "./config";
+import { isDatabaseHealthy } from "./db/index.js";
 import { checkRedisConnection } from "./storage/redis";
 import { logger } from "./utils/logger";
+import { collectMetrics, formatPrometheusMetrics } from "./utils/metrics";
 
 const PORT = config.PORT;
 const WEBHOOK_SECRET = config.WEBHOOK_SECRET;
@@ -29,19 +41,38 @@ async function checkBotConnection(): Promise<boolean> {
 /**
  * Collect health check results
  */
+/**
+ * Check if the database connection is working
+ */
+async function checkDatabaseConnection(): Promise<boolean> {
+	try {
+		return await isDatabaseHealthy();
+	} catch {
+		return false;
+	}
+}
+
+/**
+ * Collect health check results
+ */
 async function getHealthChecks(): Promise<{
 	bot: boolean;
+	database: boolean;
 	redis: boolean | null;
 }> {
-	const checks = {
-		bot: await checkBotConnection(),
-		redis:
-			isRedisConfigured() && config.REDIS_URL
-				? await checkRedisConnection(config.REDIS_URL)
-				: null,
-	};
+	const [botHealth, dbHealth, redisHealth] = await Promise.all([
+		checkBotConnection(),
+		checkDatabaseConnection(),
+		isRedisConfigured() && config.REDIS_URL
+			? checkRedisConnection(config.REDIS_URL)
+			: Promise.resolve(null),
+	]);
 
-	return checks;
+	return {
+		bot: botHealth,
+		database: dbHealth,
+		redis: redisHealth,
+	};
 }
 
 // Create the Elysia app
@@ -92,13 +123,15 @@ const app = new Elysia()
 	// Detailed health check with dependency status
 	.get("/health/detailed", async () => {
 		const checks = await getHealthChecks();
-		const allHealthy = checks.bot && (checks.redis === null || checks.redis);
+		const allHealthy =
+			checks.bot && checks.database && (checks.redis === null || checks.redis);
 
 		return {
 			status: allHealthy ? "healthy" : "degraded",
 			timestamp: new Date().toISOString(),
 			checks: {
 				bot: checks.bot ? "ok" : "error",
+				database: checks.database ? "ok" : "error",
 				redis:
 					checks.redis === null
 						? "not_configured"
@@ -115,6 +148,22 @@ const app = new Elysia()
 		};
 	})
 
+	// Metrics endpoint (JSON format)
+	.get("/metrics", async () => {
+		const metrics = await collectMetrics();
+		return {
+			timestamp: new Date().toISOString(),
+			...metrics,
+		};
+	})
+
+	// Prometheus-compatible metrics endpoint
+	.get("/metrics/prometheus", async ({ set }) => {
+		const metrics = await collectMetrics();
+		set.headers["content-type"] = "text/plain; charset=utf-8";
+		return formatPrometheusMetrics(metrics);
+	})
+
 	// Readiness probe for Kubernetes/Docker
 	.get("/ready", async ({ set }) => {
 		const checks = await getHealthChecks();
@@ -122,6 +171,11 @@ const app = new Elysia()
 		if (!checks.bot) {
 			set.status = 503;
 			return { ready: false, reason: "Bot connection failed" };
+		}
+
+		if (!checks.database) {
+			set.status = 503;
+			return { ready: false, reason: "Database connection failed" };
 		}
 
 		if (isRedisConfigured() && checks.redis === false) {
@@ -151,6 +205,7 @@ logger.info("Elysia webhook server started", {
 console.log(`🦊 Elysia webhook server running at http://localhost:${PORT}`);
 console.log(`📡 Webhook endpoint: http://localhost:${PORT}/webhook`);
 console.log(`💚 Health check: http://localhost:${PORT}/health`);
+console.log(`📊 Metrics: http://localhost:${PORT}/metrics`);
 
 // Handle graceful shutdown
 process.on("SIGINT", () => {
