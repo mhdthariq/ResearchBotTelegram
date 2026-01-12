@@ -297,7 +297,7 @@ export function formatSubscription(subscription: Subscription): string {
 		? new Date(subscription.lastRunAt).toLocaleDateString()
 		: "Never";
 
-	let text = `📌 **${subscription.topic}**\n`;
+	let text = `📌 ${subscription.topic}\n`;
 	text += `   ⏱️ ${intervalLabel}\n`;
 	text += `   📅 Last update: ${lastRun}`;
 
@@ -318,16 +318,12 @@ export function formatSubscriptionsMessage(
 	subscriptions: Subscription[],
 ): string {
 	if (subscriptions.length === 0) {
-		return "📭 You don't have any subscriptions yet.\n\nUse /subscribe <topic> to get periodic updates on research topics.";
+		return "";
 	}
 
-	let message = "📬 **Your Subscriptions**\n\n";
-	message += subscriptions
+	return subscriptions
 		.map((sub, i) => `${i + 1}. ${formatSubscription(sub)}`)
 		.join("\n\n");
-	message += `\n\n_Tap a topic to manage or remove it._`;
-
-	return message;
 }
 
 /**

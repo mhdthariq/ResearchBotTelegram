@@ -904,7 +904,6 @@ ${paper.summary}
 			}
 
 			const { subscriptions, count } = await getSubscriptionsList(userId);
-			const message = formatSubscriptionsMessage(subscriptions);
 
 			if (count === 0) {
 				const keyboard = new InlineKeyboard()
@@ -912,10 +911,17 @@ ${paper.summary}
 					.row()
 					.text("🔍 Search Papers", "action:search");
 
-				await context.message?.send(message, { reply_markup: keyboard });
+				await context.message?.send(
+					"📭 You don't have any subscriptions yet.\n\nUse /subscribe <topic> to get periodic updates on research topics.",
+					{ reply_markup: keyboard },
+				);
 			} else {
+				const subscriptionsList = formatSubscriptionsMessage(subscriptions);
 				const keyboard = createSubscriptionsKeyboard(subscriptions);
-				await context.message?.send(message, { reply_markup: keyboard });
+				await context.message?.send(
+					format`📬 ${bold("Your Subscriptions")}\n\n${subscriptionsList}\n\nTap a topic to manage or remove it.`,
+					{ reply_markup: keyboard },
+				);
 			}
 			return;
 		}
@@ -959,8 +965,9 @@ ${paper.summary}
 				}
 			} else {
 				try {
+					const subscriptionsList = formatSubscriptionsMessage(subscriptions);
 					await context.message?.editText(
-						formatSubscriptionsMessage(subscriptions),
+						format`📬 ${bold("Your Subscriptions")}\n\n${subscriptionsList}\n\nTap a topic to manage or remove it.`,
 						{
 							reply_markup: createSubscriptionsKeyboard(subscriptions),
 						},
@@ -1289,7 +1296,6 @@ ${paper.summary}
 		}
 
 		const { subscriptions, count } = await getSubscriptionsList(userId);
-		const message = formatSubscriptionsMessage(subscriptions);
 
 		if (count === 0) {
 			const keyboard = new InlineKeyboard()
@@ -1297,11 +1303,18 @@ ${paper.summary}
 				.row()
 				.text("🔍 Search Papers", "action:search");
 
-			return context.send(message, { reply_markup: keyboard });
+			return context.send(
+				"📭 You don't have any subscriptions yet.\n\nUse /subscribe <topic> to get periodic updates on research topics.",
+				{ reply_markup: keyboard },
+			);
 		}
 
+		const subscriptionsList = formatSubscriptionsMessage(subscriptions);
 		const keyboard = createSubscriptionsKeyboard(subscriptions);
-		return context.send(message, { reply_markup: keyboard });
+		return context.send(
+			format`📬 ${bold("Your Subscriptions")}\n\n${subscriptionsList}\n\nTap a topic to manage or remove it.`,
+			{ reply_markup: keyboard },
+		);
 	})
 
 	// --- SIMILAR PAPERS COMMAND ---
