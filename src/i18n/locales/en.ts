@@ -5,7 +5,7 @@
  * All other language files should have the same structure.
  */
 
-import type { Translations } from "../index";
+import type { Translations } from "../types";
 
 export const en: Translations = {
 	// General
