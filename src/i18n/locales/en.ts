@@ -143,6 +143,15 @@ export const en: Translations = {
 		days: "days",
 		weeks: "weeks",
 	},
+
+	// Language settings
+	language: {
+		title: "🌐 Language Settings",
+		current: "Current language: {language}",
+		select: "Select your preferred language:",
+		changed: "✅ Language changed to {language}",
+		unavailable: "❌ This language is not available yet. Using English.",
+	},
 };
 
 export default en;

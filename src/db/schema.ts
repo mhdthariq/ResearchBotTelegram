@@ -21,6 +21,7 @@ export const users = sqliteTable("users", {
 	username: text("username"),
 	firstName: text("first_name"),
 	lastName: text("last_name"),
+	language: text("language").default("en"), // User's preferred language code
 	resultsPerPage: integer("results_per_page").default(5),
 	preferredCategories: text("preferred_categories"), // JSON array
 	createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),

@@ -6,6 +6,7 @@
  */
 
 import { eq } from "drizzle-orm";
+import type { LanguageCode } from "../../i18n/types.js";
 import { logger } from "../../utils/logger.js";
 import { db } from "../index.js";
 import { type NewUser, type User, users } from "../schema.js";
@@ -144,6 +145,50 @@ export async function updateUserPreferences(
 	} catch (error) {
 		logger.error("Error updating user preferences", {
 			userId,
+			error: error instanceof Error ? error.message : String(error),
+		});
+		return null;
+	}
+}
+
+/**
+ * Update user's preferred language
+ */
+export async function updateUserLanguage(
+	userId: number,
+	language: LanguageCode,
+): Promise<User | null> {
+	try {
+		const result = await db
+			.update(users)
+			.set({ language })
+			.where(eq(users.id, userId))
+			.returning();
+
+		logger.info("Updated user language", { userId, language });
+		return result[0] || null;
+	} catch (error) {
+		logger.error("Error updating user language", {
+			userId,
+			language,
+			error: error instanceof Error ? error.message : String(error),
+		});
+		return null;
+	}
+}
+
+/**
+ * Get user's preferred language
+ */
+export async function getUserLanguage(
+	chatId: number,
+): Promise<LanguageCode | null> {
+	try {
+		const user = await findUserByChatId(chatId);
+		return (user?.language as LanguageCode) || null;
+	} catch (error) {
+		logger.error("Error getting user language", {
+			chatId,
 			error: error instanceof Error ? error.message : String(error),
 		});
 		return null;

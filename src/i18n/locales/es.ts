@@ -123,6 +123,14 @@ export const es: Translations = {
 		days: "días",
 		weeks: "semanas",
 	},
+
+	language: {
+		title: "🌐 Configuración de Idioma",
+		current: "Idioma actual: {language}",
+		select: "Selecciona tu idioma preferido:",
+		changed: "✅ Idioma cambiado a {language}",
+		unavailable: "❌ Este idioma no está disponible todavía. Usando inglés.",
+	},
 };
 
 export default es;

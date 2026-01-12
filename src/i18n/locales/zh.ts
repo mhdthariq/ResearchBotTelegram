@@ -122,6 +122,14 @@ export const zh: Translations = {
 		days: "天",
 		weeks: "周",
 	},
+
+	language: {
+		title: "🌐 语言设置",
+		current: "当前语言：{language}",
+		select: "选择您的首选语言：",
+		changed: "✅ 语言已更改为 {language}",
+		unavailable: "❌ 此语言暂不可用。使用英语。",
+	},
 };
 
 export default zh;
