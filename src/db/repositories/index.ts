@@ -46,6 +46,26 @@ export {
 	getUserSearchCount,
 	getUserSearchHistory,
 } from "./searchHistoryRepository.js";
+
+// Subscription repository
+export {
+	createSubscription,
+	deactivateSubscription,
+	deleteSubscription,
+	deleteSubscriptionByTopic,
+	findSubscription,
+	getAllSubscriptions,
+	getDueSubscriptions,
+	getSubscriptionById,
+	getTotalSubscriptionCount,
+	getUserSubscriptionCount,
+	getUserSubscriptions,
+	isSubscribed,
+	reactivateSubscription,
+	updateSubscription,
+	updateSubscriptionLastRun,
+} from "./subscriptionRepository.js";
+
 // User repository
 export {
 	deleteUser,

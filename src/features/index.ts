@@ -21,7 +21,15 @@ export {
 	removeBookmark,
 	toggleBookmark,
 } from "./bookmarks.js";
-
+// Recommendations feature
+export {
+	extractKeywords,
+	getComprehensiveRecommendations,
+	getPapersBySameAuthors,
+	getRecentInCategory,
+	getSimilarPapers,
+	getSimilarPapersById,
+} from "./recommendations.js";
 // Search history feature
 export {
 	clearHistory,
@@ -37,3 +45,17 @@ export {
 	getTopSearches,
 	recordSearch,
 } from "./searchHistory.js";
+// Subscriptions feature
+export {
+	createIntervalKeyboard,
+	createSubscriptionSettingsKeyboard,
+	createSubscriptionsKeyboard,
+	formatSubscription,
+	formatSubscriptionsMessage,
+	getSubscriptionsList,
+	parseSubscribeArgs,
+	SUBSCRIPTION_INTERVALS,
+	subscribe,
+	unsubscribe,
+	updateInterval,
+} from "./subscriptions.js";

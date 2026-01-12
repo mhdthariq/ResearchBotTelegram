@@ -11,6 +11,10 @@
  * - Abstract expansion
  * - BibTeX export
  * - Advanced search
+ * - Subscriptions (daily digest)
+ * - Inline query support
+ * - Similar papers recommendations
+ * - Admin commands
  */
 
 import { prompt } from "@gramio/prompt";
@@ -27,6 +31,11 @@ import {
 import { initPaperCache } from "../cache/paperCache.js";
 import { config, isRedisConfigured } from "../config.js";
 import { findOrCreateUser } from "../db/repositories/index.js";
+import {
+	getSubscriptionById,
+	getTotalSubscriptionCount,
+} from "../db/repositories/subscriptionRepository.js";
+import { getUserCount } from "../db/repositories/userRepository.js";
 import { getErrorMessage } from "../errors.js";
 import {
 	addBookmark,
@@ -38,6 +47,7 @@ import {
 	getBookmarksPaginated,
 	removeBookmark,
 } from "../features/bookmarks.js";
+import { getSimilarPapersById } from "../features/recommendations.js";
 import {
 	clearHistory,
 	createHistoryKeyboard,
@@ -48,6 +58,23 @@ import {
 	getSearchStats,
 	recordSearch,
 } from "../features/searchHistory.js";
+import {
+	createIntervalKeyboard,
+	createSubscriptionSettingsKeyboard,
+	createSubscriptionsKeyboard,
+	formatSubscriptionsMessage,
+	getSubscriptionsList,
+	parseSubscribeArgs,
+	subscribe,
+	unsubscribe,
+	updateInterval,
+} from "../features/subscriptions.js";
+import {
+	ADMIN_HELP,
+	formatAdminStats,
+	isAdmin,
+	logAdminAction,
+} from "../middleware/admin.js";
 import { checkRateLimit, getRateLimitInfo } from "../middleware/rateLimit.js";
 import { createRedisStorage } from "../storage/redis.js";
 import { toBibTeX } from "../utils/export.js";
@@ -258,16 +285,26 @@ ${bold`Search Commands:`}
 /search [topic] - Search for papers
 /author [name] - Search by author
 /category - Browse by category
+/similar [arxiv_id] - Find similar papers
 
 ${bold`History & Bookmarks:`}
 /bookmarks - View saved papers
 /history - View search history
 /stats - Your statistics
+/export - Export bookmarks as BibTeX
+
+${bold`Subscriptions:`}
+/subscribe [topic] - Get daily updates
+/unsubscribe [topic] - Remove subscription
+/subscriptions - View all subscriptions
 
 ${bold`Other:`}
 /more - Load more results
 /start - Show main menu
 /help - Show this help
+
+${bold`Inline Mode:`}
+Type @botname query in any chat to search!
 
 ${MESSAGES.SEARCH_TIP}
       `,
@@ -850,6 +887,205 @@ ${paper.summary}
 			return;
 		}
 
+		// --- Subscription handlers ---
+		if (data === "action:add_subscription") {
+			await context.answer();
+			await context.message?.send(
+				"📬 To subscribe to a topic, use:\n/subscribe <topic>\n\nExample: /subscribe machine learning",
+			);
+			return;
+		}
+
+		if (data === "action:subscriptions") {
+			await context.answer();
+			if (!userId) {
+				await context.message?.send("Please use /subscriptions command.");
+				return;
+			}
+
+			const { subscriptions, count } = await getSubscriptionsList(userId);
+			const message = formatSubscriptionsMessage(subscriptions);
+
+			if (count === 0) {
+				const keyboard = new InlineKeyboard()
+					.text("➕ Add Subscription", "action:add_subscription")
+					.row()
+					.text("🔍 Search Papers", "action:search");
+
+				await context.message?.send(message, { reply_markup: keyboard });
+			} else {
+				const keyboard = createSubscriptionsKeyboard(subscriptions);
+				await context.message?.send(message, { reply_markup: keyboard });
+			}
+			return;
+		}
+
+		if (data.startsWith("unsub:")) {
+			const subscriptionId = parseInt(data.replace("unsub:", ""), 10);
+			await context.answer();
+
+			if (!userId || Number.isNaN(subscriptionId)) return;
+
+			const subscription = await getSubscriptionById(subscriptionId);
+			if (!subscription) {
+				await context.answer({
+					text: "Subscription not found.",
+					show_alert: true,
+				});
+				return;
+			}
+
+			const result = await unsubscribe(userId, subscription.topic);
+			await context.answer({
+				text: result.message,
+				show_alert: true,
+			});
+
+			// Refresh the subscriptions list
+			const { subscriptions, count } = await getSubscriptionsList(userId);
+			if (count === 0) {
+				try {
+					await context.message?.editText(
+						"📭 You don't have any subscriptions.\n\nUse /subscribe <topic> to get updates.",
+						{
+							reply_markup: new InlineKeyboard()
+								.text("➕ Add Subscription", "action:add_subscription")
+								.row()
+								.text("🔍 Search Papers", "action:search"),
+						},
+					);
+				} catch {
+					// Ignore edit errors
+				}
+			} else {
+				try {
+					await context.message?.editText(
+						formatSubscriptionsMessage(subscriptions),
+						{
+							reply_markup: createSubscriptionsKeyboard(subscriptions),
+						},
+					);
+				} catch {
+					// Ignore edit errors
+				}
+			}
+			return;
+		}
+
+		if (data.startsWith("sub_settings:")) {
+			const subscriptionId = parseInt(data.replace("sub_settings:", ""), 10);
+			await context.answer();
+
+			if (Number.isNaN(subscriptionId)) return;
+
+			const subscription = await getSubscriptionById(subscriptionId);
+			if (!subscription) {
+				await context.answer({
+					text: "Subscription not found.",
+					show_alert: true,
+				});
+				return;
+			}
+
+			const message = `⚙️ Subscription Settings\n\n📌 Topic: ${subscription.topic}\n⏱️ Interval: ${subscription.intervalHours || 24} hours\n📂 Category: ${subscription.category || "All"}`;
+
+			try {
+				await context.message?.editText(message, {
+					reply_markup: createSubscriptionSettingsKeyboard(subscription),
+				});
+			} catch {
+				await context.message?.send(message, {
+					reply_markup: createSubscriptionSettingsKeyboard(subscription),
+				});
+			}
+			return;
+		}
+
+		if (data.startsWith("sub_change_interval:")) {
+			const subscriptionId = parseInt(
+				data.replace("sub_change_interval:", ""),
+				10,
+			);
+			await context.answer();
+
+			if (Number.isNaN(subscriptionId)) return;
+
+			const subscription = await getSubscriptionById(subscriptionId);
+			if (!subscription) return;
+
+			try {
+				await context.message?.editText(
+					`⏱️ Select update frequency for "${subscription.topic}":`,
+					{
+						reply_markup: createIntervalKeyboard(
+							subscriptionId,
+							subscription.intervalHours ?? 24,
+						),
+					},
+				);
+			} catch {
+				// Ignore edit errors
+			}
+			return;
+		}
+
+		if (data.startsWith("sub_interval:")) {
+			const parts = data.replace("sub_interval:", "").split(":");
+			const subscriptionId = parseInt(parts[0] ?? "", 10);
+			const intervalHours = parseInt(parts[1] ?? "", 10);
+			await context.answer();
+
+			if (Number.isNaN(subscriptionId) || Number.isNaN(intervalHours)) return;
+
+			const updated = await updateInterval(subscriptionId, intervalHours);
+			if (updated) {
+				await context.answer({
+					text: `✅ Interval updated to every ${intervalHours} hours.`,
+					show_alert: true,
+				});
+
+				// Go back to subscription settings
+				try {
+					await context.message?.editText(
+						`⚙️ Subscription Settings\n\n📌 Topic: ${updated.topic}\n⏱️ Interval: ${intervalHours} hours\n📂 Category: ${updated.category || "All"}`,
+						{
+							reply_markup: createSubscriptionSettingsKeyboard(updated),
+						},
+					);
+				} catch {
+					// Ignore edit errors
+				}
+			}
+			return;
+		}
+
+		// --- Similar papers handler ---
+		if (data.startsWith("similar:")) {
+			const arxivId = data.replace("similar:", "");
+			await context.answer();
+
+			await context.message?.send(`🔍 Finding similar papers...`);
+
+			const similarPapers = await getSimilarPapersById(arxivId, {
+				maxResults: 5,
+			});
+
+			if (!similarPapers || similarPapers.length === 0) {
+				await context.message?.send("No similar papers found.");
+				return;
+			}
+
+			const message = format`${bold`📚 Similar Papers`}\n\n${formatPapersMessage(similarPapers)}`;
+
+			const keyboard = new InlineKeyboard().text(
+				"🔍 New Search",
+				"action:search",
+			);
+
+			await context.message?.send(message, { reply_markup: keyboard });
+			return;
+		}
+
 		// --- Noop handler ---
 		if (data.endsWith(":noop")) {
 			await context.answer();
@@ -964,4 +1200,285 @@ ${paper.summary}
 			.text("🔍 New Search", "action:search");
 
 		return context.send(message, { reply_markup: keyboard });
+	})
+
+	// --- SUBSCRIBE COMMAND ---
+
+	.command("subscribe", async (context) => {
+		if (!checkRateLimit(context.chatId)) {
+			return context.send(formatRateLimitMessage(context.chatId));
+		}
+
+		const userId = await ensureUser(context.chatId, context.research_session, {
+			username: context.from?.username,
+			firstName: context.from?.firstName,
+			lastName: context.from?.lastName,
+		});
+
+		if (!userId) {
+			return context.send(
+				"❌ Could not process subscription. Please try again.",
+			);
+		}
+
+		let topicArg = context.args ?? "";
+
+		if (!topicArg) {
+			const answer = await context.prompt(
+				"message",
+				"📬 What topic would you like to subscribe to?\n\nYou'll receive daily updates with new papers.",
+			);
+			topicArg = answer.text || "";
+		}
+
+		const { topic, category } = parseSubscribeArgs(topicArg);
+
+		if (!topic) {
+			return context.send(
+				"Usage: /subscribe <topic>\nExample: /subscribe machine learning\n\nOptional category: /subscribe [cs.AI] neural networks",
+			);
+		}
+
+		const result = await subscribe(userId, topic, { category });
+
+		return context.send(result.message);
+	})
+
+	// --- UNSUBSCRIBE COMMAND ---
+
+	.command("unsubscribe", async (context) => {
+		if (!checkRateLimit(context.chatId)) {
+			return context.send(formatRateLimitMessage(context.chatId));
+		}
+
+		const userId = await ensureUser(context.chatId, context.research_session);
+		if (!userId) {
+			return context.send("❌ Could not process request. Please try again.");
+		}
+
+		const topic = context.args?.trim();
+
+		if (!topic) {
+			// Show list of subscriptions to unsubscribe from
+			const { subscriptions, count } = await getSubscriptionsList(userId);
+
+			if (count === 0) {
+				return context.send("📭 You don't have any subscriptions.");
+			}
+
+			const keyboard = createSubscriptionsKeyboard(subscriptions);
+			return context.send("Select a subscription to remove:", {
+				reply_markup: keyboard,
+			});
+		}
+
+		const result = await unsubscribe(userId, topic);
+		return context.send(result.message);
+	})
+
+	// --- SUBSCRIPTIONS COMMAND ---
+
+	.command("subscriptions", async (context) => {
+		if (!checkRateLimit(context.chatId)) {
+			return context.send(formatRateLimitMessage(context.chatId));
+		}
+
+		const userId = await ensureUser(context.chatId, context.research_session);
+		if (!userId) {
+			return context.send("❌ Could not load subscriptions. Please try again.");
+		}
+
+		const { subscriptions, count } = await getSubscriptionsList(userId);
+		const message = formatSubscriptionsMessage(subscriptions);
+
+		if (count === 0) {
+			const keyboard = new InlineKeyboard()
+				.text("➕ Add Subscription", "action:add_subscription")
+				.row()
+				.text("🔍 Search Papers", "action:search");
+
+			return context.send(message, { reply_markup: keyboard });
+		}
+
+		const keyboard = createSubscriptionsKeyboard(subscriptions);
+		return context.send(message, { reply_markup: keyboard });
+	})
+
+	// --- SIMILAR PAPERS COMMAND ---
+
+	.command("similar", async (context) => {
+		if (!checkRateLimit(context.chatId, { maxRequests: 15, windowMs: 60000 })) {
+			return context.send(formatRateLimitMessage(context.chatId));
+		}
+
+		const arxivId = context.args?.trim();
+
+		if (!arxivId) {
+			return context.send(
+				"Usage: /similar <arxiv_id>\nExample: /similar 2301.00001\n\nYou can find the arXiv ID in paper links (e.g., arxiv.org/abs/2301.00001)",
+			);
+		}
+
+		await context.send(`🔍 Finding similar papers to ${arxivId}...`);
+
+		const similarPapers = await getSimilarPapersById(arxivId, {
+			maxResults: 5,
+		});
+
+		if (similarPapers === null) {
+			return context.send(`❌ Could not find paper with ID "${arxivId}".`);
+		}
+
+		if (similarPapers.length === 0) {
+			return context.send("No similar papers found.");
+		}
+
+		const message = format`${bold`📚 Similar Papers`}\n\n${formatPapersMessage(similarPapers)}`;
+
+		const keyboard = new InlineKeyboard().text(
+			"🔍 New Search",
+			"action:search",
+		);
+
+		return context.send(message, { reply_markup: keyboard });
+	})
+
+	// --- ADMIN STATS COMMAND ---
+
+	.command("admin_stats", async (context) => {
+		if (!isAdmin(context.chatId)) {
+			return; // Silently ignore for non-admins
+		}
+
+		if (!checkRateLimit(context.chatId, { maxRequests: 60 })) {
+			return context.send(formatRateLimitMessage(context.chatId));
+		}
+
+		logAdminAction(context.chatId, "view_stats");
+
+		// Gather statistics
+		const totalUsers = await getUserCount();
+		const totalSubscriptions = await getTotalSubscriptionCount(true);
+
+		const stats = formatAdminStats({
+			totalUsers,
+			activeSubscriptions: totalSubscriptions,
+		});
+
+		return context.send(stats, { parse_mode: "Markdown" });
+	})
+
+	// --- ADMIN HELP COMMAND ---
+
+	.command("admin", async (context) => {
+		if (!isAdmin(context.chatId)) {
+			return; // Silently ignore for non-admins
+		}
+
+		return context.send(ADMIN_HELP, { parse_mode: "Markdown" });
+	})
+
+	// --- INLINE QUERY HANDLER ---
+
+	.on("inline_query", async (context) => {
+		const query = context.query?.trim() || "";
+
+		logger.debug("Received inline query", { query });
+
+		try {
+			// Check minimum query length
+			if (query.length < 3) {
+				await context.answerInlineQuery(
+					[
+						{
+							type: "article",
+							id: "help",
+							title: "Type at least 3 characters to search",
+							description: "Search for research papers on arXiv",
+							input_message_content: {
+								message_text:
+									"🔍 Use this bot to search for research papers on arXiv!\n\nJust type @YourBotName followed by your search query.",
+							},
+						},
+					],
+					{ cache_time: 60, is_personal: false },
+				);
+				return;
+			}
+
+			// Fetch papers from arXiv
+			const papers = await fetchPapers(query, 0, 10);
+
+			if (papers.length === 0) {
+				await context.answerInlineQuery(
+					[
+						{
+							type: "article",
+							id: "no-results",
+							title: `No papers found for "${query}"`,
+							description: "Try a different search term",
+							input_message_content: {
+								message_text: `❌ No papers found for "${query}".\n\nTry different keywords or check the spelling.`,
+							},
+						},
+					],
+					{ cache_time: 300, is_personal: false },
+				);
+				return;
+			}
+
+			// Format results
+			const results = papers.map((paper, index) => {
+				const arxivId = paper.link.split("/abs/")[1] || `paper-${index}`;
+				const authors = paper.authors?.slice(0, 3).join(", ") || "Unknown";
+				const moreAuthors = (paper.authors?.length || 0) > 3 ? " et al." : "";
+				const shortSummary =
+					paper.summary.length > 150
+						? `${paper.summary.substring(0, 150)}...`
+						: paper.summary;
+				const pdfUrl = `${paper.link.replace("/abs/", "/pdf/")}.pdf`;
+
+				return {
+					type: "article" as const,
+					id: arxivId,
+					title: paper.title,
+					description: `${authors}${moreAuthors} • ${paper.published}`,
+					url: paper.link,
+					input_message_content: {
+						message_text: `📄 *${paper.title}*\n\n👥 ${authors}${moreAuthors}\n📅 ${paper.published}\n\n📝 _${shortSummary}_\n\n🔗 [View on arXiv](${paper.link}) | [PDF](${pdfUrl})`,
+						parse_mode: "Markdown" as const,
+					},
+				};
+			});
+
+			logger.info("Answering inline query", {
+				query,
+				resultsCount: results.length,
+			});
+
+			await context.answerInlineQuery(results, {
+				cache_time: 300,
+				is_personal: false,
+			});
+		} catch (error) {
+			logger.error("Failed to handle inline query", {
+				query,
+				error: error instanceof Error ? error.message : String(error),
+			});
+
+			await context.answerInlineQuery(
+				[
+					{
+						type: "article",
+						id: "error",
+						title: "Search failed",
+						description: "An error occurred. Please try again.",
+						input_message_content: {
+							message_text: "❌ Search failed. Please try again later.",
+						},
+					},
+				],
+				{ cache_time: 10, is_personal: false },
+			);
+		}
 	});

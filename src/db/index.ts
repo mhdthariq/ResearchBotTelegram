@@ -32,6 +32,22 @@ const client = createClient(dbConfig);
 // Create Drizzle client with schema
 export const db = drizzle(client, { schema });
 
+/**
+ * Get the database instance
+ * For use in repositories that need direct access
+ */
+export function getDb() {
+	return db;
+}
+
+/**
+ * Check if database is available
+ * Returns true if the database connection is configured
+ */
+export function isDatabaseAvailable(): boolean {
+	return !!db;
+}
+
 // Export schema for convenience
 export * from "./schema.js";
 
