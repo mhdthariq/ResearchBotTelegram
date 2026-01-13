@@ -5,18 +5,27 @@ All notable changes to Research Bot will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.0.0] - 2025-01-20
 
 ### Added
-- Multi-language support infrastructure (i18n)
-- Comprehensive test suite for utilities, arXiv API, and bot functionality
-- CI/CD pipeline with GitHub Actions
-- API documentation
-- Contributing guide
 
-## [1.0.0] - 2024-01-15
+- **Multi-Language Support (i18n)**
+  - `/language` command for changing bot language
+  - 10 fully translated languages:
+    - 🇺🇸 English (en)
+    - 🇪🇸 Español (es)
+    - 🇨🇳 中文 (zh)
+    - 🇷🇺 Русский (ru)
+    - 🇵🇹 Português (pt)
+    - 🇫🇷 Français (fr)
+    - 🇩🇪 Deutsch (de)
+    - 🇯🇵 日本語 (ja)
+    - 🇸🇦 العربية (ar)
+    - 🇮🇩 Bahasa Indonesia (id)
+  - Language preference persisted per user
+  - Automatic language detection from Telegram settings
+  - Fallback to English for unsupported languages
 
-### Added
 - **Search Features**
   - `/search` command for searching arXiv papers
   - `/author` command for searching by author name
@@ -59,10 +68,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Webhook mode with Elysia server
   - Polling mode for development
   - Vercel serverless deployment support
+  - Docker support with Alpine-based images
+  - Multi-architecture builds (AMD64, ARM64)
   - SQLite database with Drizzle ORM
   - Redis caching support (optional)
   - Health check endpoints
   - Structured logging
+  - CI/CD pipeline with GitHub Actions
+  - Automated releases with Docker image publishing
 
 - **arXiv API Integration**
   - Rate limiting (3 second intervals)
@@ -73,7 +86,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Error Handling**
   - Custom error types (ArxivApiError, RateLimitError, ValidationError)
-  - User-friendly error messages
+  - User-friendly error messages in all supported languages
   - Graceful degradation
 
 - **Rate Limiting**
@@ -81,45 +94,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - arXiv API rate limiting
   - Informative rate limit messages
 
+- **Documentation**
+  - Comprehensive API documentation
+  - Contributing guide
+  - Test suite for utilities, arXiv API, and bot functionality
+
 ### Security
+
 - Webhook secret token verification
 - Input sanitization for search queries
 - Environment variable validation
 - Admin command access control
-
-## [0.1.0] - 2024-01-01
-
-### Added
-- Initial bot setup with GramIO framework
-- Basic `/start` and `/help` commands
-- Simple paper search functionality
-- Inline keyboard navigation
+- Non-root user in Docker container
 
 ---
 
-## Version History Summary
+## Docker Image
 
-| Version | Date | Highlights |
-|---------|------|------------|
-| 1.0.0 | 2024-01-15 | Full feature release with bookmarks, subscriptions, and admin tools |
-| 0.1.0 | 2024-01-01 | Initial release with basic search |
+Pull from GitHub Container Registry:
 
-## Upgrade Notes
+```bash
+docker pull ghcr.io/mhdthariq/researchbottelegram:1.0.0
+```
 
-### Upgrading to 1.0.0
+Or use docker-compose:
 
-1. **Database Migration Required**
-   ```bash
-   bun run db:migrate
-   ```
+```bash
+docker-compose up -d
+```
 
-2. **New Environment Variables**
-   - `DATABASE_URL` - Database connection string
-   - `DATABASE_AUTH_TOKEN` - For remote Turso databases
-   - `ADMIN_IDS` - Comma-separated admin chat IDs (optional)
+## Environment Variables
 
-3. **Redis Recommended**
-   For production deployments, configure `REDIS_URL` for session persistence and caching.
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `BOT_TOKEN` | Yes | Telegram Bot API token |
+| `DATABASE_URL` | Yes | Database connection string |
+| `DATABASE_AUTH_TOKEN` | No | For remote Turso databases |
+| `ADMIN_IDS` | No | Comma-separated admin chat IDs |
+| `REDIS_URL` | No | Redis connection for caching |
+| `WEBHOOK_URL` | No | Webhook URL for production |
+| `WEBHOOK_SECRET` | No | Webhook secret token |
 
 ## Contributing
 

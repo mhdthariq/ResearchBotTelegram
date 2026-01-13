@@ -81,6 +81,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -127,48 +130,44 @@ jobs:
 
       - name: Get version from tag
         id: get_version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          VERSION_NUMBER=${VERSION#v}
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "VERSION_NUMBER=$VERSION_NUMBER" >> $GITHUB_OUTPUT
 
-      - name: Generate changelog
+      - name: Extract changelog for this version
         id: changelog
         run: |
-          # Get the previous tag
-          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          # Extract changelog section for this version from CHANGELOG.md
+          VERSION_NUMBER="${{ steps.get_version.outputs.VERSION_NUMBER }}"
 
-          if [ -z "$PREV_TAG" ]; then
-            # If no previous tag, get all commits
-            CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges)
-          else
-            # Get commits between previous tag and current
-            CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges ${PREV_TAG}..HEAD)
+          # Use awk to extract the section between this version header and the next header or end markers
+          CHANGELOG=$(awk -v ver="$VERSION_NUMBER" '
+            /^## \[/ {
+              if (found) exit
+              if (index($0, "["ver"]") > 0) found=1
+              next
+            }
+            /^---/ { if (found) exit }
+            found { print }
+          ' CHANGELOG.md)
+
+          # If no changelog found, use a default message
+          if [ -z "$CHANGELOG" ]; then
+            CHANGELOG="Release ${{ steps.get_version.outputs.VERSION }}"
           fi
 
-          # Write to file to preserve newlines
-          echo "$CHANGELOG" > changelog.txt
+          # Write to file to preserve formatting
+          echo "$CHANGELOG" > release_notes.md
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.get_version.outputs.VERSION }}
           name: Release ${{ steps.get_version.outputs.VERSION }}
-          body: |
-            ## What's Changed
-
-            $(cat changelog.txt)
-
-            ## Docker Image
-
-            Pull the image from GitHub Container Registry:
-
-            ```bash
-            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.build-and-push.outputs.version }}
-            ```
-
-            ## Full Changelog
-
-            https://github.com/${{ github.repository }}/compare/.../${{ steps.get_version.outputs.VERSION }}
+          body_path: release_notes.md
           draft: false
           prerelease: ${{ contains(steps.get_version.outputs.VERSION, '-') }}
-          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
