@@ -14,10 +14,10 @@
 
 // Re-export types for convenience
 export {
-  DEFAULT_LANGUAGE,
-  LANGUAGE_NAMES,
-  type LanguageCode,
-  type Translations,
+	DEFAULT_LANGUAGE,
+	LANGUAGE_NAMES,
+	type LanguageCode,
+	type Translations,
 } from "./types";
 
 // Import locale files
@@ -33,9 +33,9 @@ import { ru } from "./locales/ru";
 import { zh } from "./locales/zh";
 
 import {
-  DEFAULT_LANGUAGE,
-  type LanguageCode,
-  type Translations,
+	DEFAULT_LANGUAGE,
+	type LanguageCode,
+	type Translations,
 } from "./types";
 
 /**
@@ -44,16 +44,16 @@ import {
  * Each language has its own dedicated locale file with full translations.
  */
 const translations: Record<LanguageCode, Translations> = {
-  en,
-  es,
-  zh,
-  ru,
-  pt,
-  fr,
-  de,
-  ja,
-  ar,
-  id,
+	en,
+	es,
+	zh,
+	ru,
+	pt,
+	fr,
+	de,
+	ja,
+	ar,
+	id,
 };
 
 /**
@@ -63,11 +63,11 @@ const translations: Record<LanguageCode, Translations> = {
  * @returns Translation object
  */
 export function getTranslations(lang: LanguageCode | string): Translations {
-  const code =
-    (lang as LanguageCode) in translations
-      ? (lang as LanguageCode)
-      : DEFAULT_LANGUAGE;
-  return translations[code];
+	const code =
+		(lang as LanguageCode) in translations
+			? (lang as LanguageCode)
+			: DEFAULT_LANGUAGE;
+	return translations[code];
 }
 
 /**
@@ -83,49 +83,49 @@ export function getTranslations(lang: LanguageCode | string): Translations {
  * // Returns: "📄 Found 10 papers for 'AI'"
  */
 export function t(
-  lang: LanguageCode | string,
-  key: string,
-  params?: Record<string, string | number>,
+	lang: LanguageCode | string,
+	key: string,
+	params?: Record<string, string | number>,
 ): string {
-  const trans = getTranslations(lang);
-  const keys = key.split(".");
+	const trans = getTranslations(lang);
+	const keys = key.split(".");
 
-  // biome-ignore lint/suspicious/noExplicitAny: Dynamic key access
-  let value: any = trans;
-  for (const k of keys) {
-    if (value && typeof value === "object" && k in value) {
-      value = value[k];
-    } else {
-      // Fall back to English if key not found
-      // biome-ignore lint/suspicious/noExplicitAny: Dynamic key access
-      let fallback: any = translations.en;
-      for (const fk of keys) {
-        if (fallback && typeof fallback === "object" && fk in fallback) {
-          fallback = fallback[fk];
-        } else {
-          return key; // Return key if not found in fallback either
-        }
-      }
-      value = fallback;
-      break;
-    }
-  }
+	// biome-ignore lint/suspicious/noExplicitAny: Dynamic key access
+	let value: any = trans;
+	for (const k of keys) {
+		if (value && typeof value === "object" && k in value) {
+			value = value[k];
+		} else {
+			// Fall back to English if key not found
+			// biome-ignore lint/suspicious/noExplicitAny: Dynamic key access
+			let fallback: any = translations.en;
+			for (const fk of keys) {
+				if (fallback && typeof fallback === "object" && fk in fallback) {
+					fallback = fallback[fk];
+				} else {
+					return key; // Return key if not found in fallback either
+				}
+			}
+			value = fallback;
+			break;
+		}
+	}
 
-  if (typeof value !== "string") {
-    return key;
-  }
+	if (typeof value !== "string") {
+		return key;
+	}
 
-  // Interpolate parameters
-  if (params) {
-    for (const [paramKey, paramValue] of Object.entries(params)) {
-      value = value.replace(
-        new RegExp(`\\{${paramKey}\\}`, "g"),
-        String(paramValue),
-      );
-    }
-  }
+	// Interpolate parameters
+	if (params) {
+		for (const [paramKey, paramValue] of Object.entries(params)) {
+			value = value.replace(
+				new RegExp(`\\{${paramKey}\\}`, "g"),
+				String(paramValue),
+			);
+		}
+	}
 
-  return value;
+	return value;
 }
 
 /**
@@ -135,46 +135,46 @@ export function t(
  * @returns Supported language code
  */
 export function detectLanguage(telegramLangCode?: string): LanguageCode {
-  if (!telegramLangCode) {
-    return DEFAULT_LANGUAGE;
-  }
+	if (!telegramLangCode) {
+		return DEFAULT_LANGUAGE;
+	}
 
-  // Normalize to lowercase and get base language
-  const parts = telegramLangCode.toLowerCase().split("-");
-  const normalized = parts[0] ?? "";
+	// Normalize to lowercase and get base language
+	const parts = telegramLangCode.toLowerCase().split("-");
+	const normalized = parts[0] ?? "";
 
-  if (normalized && normalized in translations) {
-    return normalized as LanguageCode;
-  }
+	if (normalized && normalized in translations) {
+		return normalized as LanguageCode;
+	}
 
-  // Map common variants
-  const languageMap: Record<string, LanguageCode> = {
-    "zh-cn": "zh",
-    "zh-tw": "zh",
-    "zh-hk": "zh",
-    "pt-br": "pt",
-    "pt-pt": "pt",
-    "es-mx": "es",
-    "es-ar": "es",
-    "es-es": "es",
-    "fr-ca": "fr",
-    "fr-fr": "fr",
-    "de-at": "de",
-    "de-ch": "de",
-    "de-de": "de",
-    "ar-sa": "ar",
-    "ar-eg": "ar",
-    "ar-ae": "ar",
-    "id-id": "id",
-  };
+	// Map common variants
+	const languageMap: Record<string, LanguageCode> = {
+		"zh-cn": "zh",
+		"zh-tw": "zh",
+		"zh-hk": "zh",
+		"pt-br": "pt",
+		"pt-pt": "pt",
+		"es-mx": "es",
+		"es-ar": "es",
+		"es-es": "es",
+		"fr-ca": "fr",
+		"fr-fr": "fr",
+		"de-at": "de",
+		"de-ch": "de",
+		"de-de": "de",
+		"ar-sa": "ar",
+		"ar-eg": "ar",
+		"ar-ae": "ar",
+		"id-id": "id",
+	};
 
-  const fullCode = telegramLangCode.toLowerCase();
-  const mappedLang = languageMap[fullCode];
-  if (mappedLang) {
-    return mappedLang;
-  }
+	const fullCode = telegramLangCode.toLowerCase();
+	const mappedLang = languageMap[fullCode];
+	if (mappedLang) {
+		return mappedLang;
+	}
 
-  return DEFAULT_LANGUAGE;
+	return DEFAULT_LANGUAGE;
 }
 
 /**
@@ -184,7 +184,7 @@ export function detectLanguage(telegramLangCode?: string): LanguageCode {
  * @returns Whether the language is supported
  */
 export function isLanguageSupported(lang: string): boolean {
-  return lang in translations;
+	return lang in translations;
 }
 
 /**
@@ -193,46 +193,46 @@ export function isLanguageSupported(lang: string): boolean {
  * @returns Array of supported language codes
  */
 export function getSupportedLanguages(): LanguageCode[] {
-  return Object.keys(translations) as LanguageCode[];
+	return Object.keys(translations) as LanguageCode[];
 }
 
 /**
  * I18n helper class for per-user translation management
  */
 export class I18n {
-  private lang: LanguageCode;
+	private lang: LanguageCode;
 
-  constructor(lang: LanguageCode | string = DEFAULT_LANGUAGE) {
-    this.lang = detectLanguage(lang);
-  }
+	constructor(lang: LanguageCode | string = DEFAULT_LANGUAGE) {
+		this.lang = detectLanguage(lang);
+	}
 
-  /**
-   * Get current language code
-   */
-  get language(): LanguageCode {
-    return this.lang;
-  }
+	/**
+	 * Get current language code
+	 */
+	get language(): LanguageCode {
+		return this.lang;
+	}
 
-  /**
-   * Set language
-   */
-  setLanguage(lang: LanguageCode | string): void {
-    this.lang = detectLanguage(lang);
-  }
+	/**
+	 * Set language
+	 */
+	setLanguage(lang: LanguageCode | string): void {
+		this.lang = detectLanguage(lang);
+	}
 
-  /**
-   * Get all translations for current language
-   */
-  getAll(): Translations {
-    return getTranslations(this.lang);
-  }
+	/**
+	 * Get all translations for current language
+	 */
+	getAll(): Translations {
+		return getTranslations(this.lang);
+	}
 
-  /**
-   * Translate a key
-   */
-  t(key: string, params?: Record<string, string | number>): string {
-    return t(this.lang, key, params);
-  }
+	/**
+	 * Translate a key
+	 */
+	t(key: string, params?: Record<string, string | number>): string {
+		return t(this.lang, key, params);
+	}
 }
 
 // Export default instance for English

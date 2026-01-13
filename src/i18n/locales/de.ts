@@ -106,8 +106,7 @@ export const de: Translations = {
 		invalidInput:
 			"❌ Ungültige Eingabe.\n\nBitte überprüfe deine Eingabe und versuche es erneut.",
 		notFound: "❌ Nicht gefunden.",
-		unauthorized:
-			"🔒 Du hast keine Berechtigung, diese Aktion durchzuführen.",
+		unauthorized: "🔒 Du hast keine Berechtigung, diese Aktion durchzuführen.",
 		tryAgain: "Bitte versuche es später erneut.",
 	},
 

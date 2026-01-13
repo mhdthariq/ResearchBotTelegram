@@ -68,15 +68,18 @@ export const pt: Translations = {
 		removed: "🗑️ Favorito removido",
 		exists: "📌 Este artigo já está nos favoritos",
 		exportTitle: "📚 Exportação BibTeX",
-		exportEmpty: "📚 Nenhum favorito para exportar.\n\nSalve alguns artigos primeiro!",
+		exportEmpty:
+			"📚 Nenhum favorito para exportar.\n\nSalve alguns artigos primeiro!",
 	},
 
 	// History
 	history: {
 		title: "📜 Histórico de Pesquisa",
-		empty: "📜 Nenhum histórico ainda.\n\nComece com /search para encontrar artigos!",
+		empty:
+			"📜 Nenhum histórico ainda.\n\nComece com /search para encontrar artigos!",
 		cleared: "📜 Histórico de pesquisa limpo com sucesso.",
-		clearConfirm: "Tem certeza de que deseja limpar todo o seu histórico de pesquisa?",
+		clearConfirm:
+			"Tem certeza de que deseja limpar todo o seu histórico de pesquisa?",
 	},
 
 	// Subscriptions
@@ -96,12 +99,14 @@ export const pt: Translations = {
 
 	// Errors
 	errors: {
-		apiError: "❌ Erro ao buscar artigos do arXiv.\n\nPor favor, tente novamente mais tarde.",
+		apiError:
+			"❌ Erro ao buscar artigos do arXiv.\n\nPor favor, tente novamente mais tarde.",
 		rateLimited:
 			"⏳ Muitas solicitações. Por favor, aguarde {seconds} segundos antes de tentar novamente.",
 		invalidCommand:
 			"❓ Comando desconhecido.\n\nUse /help para ver todos os comandos disponíveis.",
-		invalidInput: "❌ Entrada inválida.\n\nPor favor, verifique sua entrada e tente novamente.",
+		invalidInput:
+			"❌ Entrada inválida.\n\nPor favor, verifique sua entrada e tente novamente.",
 		notFound: "❌ Não encontrado.",
 		unauthorized: "🔒 Você não tem permissão para realizar esta ação.",
 		tryAgain: "Por favor, tente novamente mais tarde.",

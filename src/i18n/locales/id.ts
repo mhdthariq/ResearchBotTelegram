@@ -66,15 +66,18 @@ export const id: Translations = {
 		removed: "🗑️ Bookmark dihapus",
 		exists: "📌 Makalah ini sudah di-bookmark",
 		exportTitle: "📚 Ekspor BibTeX",
-		exportEmpty: "📚 Tidak ada bookmark untuk diekspor.\n\nSimpan beberapa makalah terlebih dahulu!",
+		exportEmpty:
+			"📚 Tidak ada bookmark untuk diekspor.\n\nSimpan beberapa makalah terlebih dahulu!",
 	},
 
 	// History
 	history: {
 		title: "📜 Riwayat Pencarian",
-		empty: "📜 Belum ada riwayat pencarian.\n\nMulai dengan /search untuk menemukan makalah!",
+		empty:
+			"📜 Belum ada riwayat pencarian.\n\nMulai dengan /search untuk menemukan makalah!",
 		cleared: "📜 Riwayat pencarian berhasil dihapus.",
-		clearConfirm: "Apakah Anda yakin ingin menghapus seluruh riwayat pencarian?",
+		clearConfirm:
+			"Apakah Anda yakin ingin menghapus seluruh riwayat pencarian?",
 	},
 
 	// Subscriptions
@@ -94,12 +97,14 @@ export const id: Translations = {
 
 	// Errors
 	errors: {
-		apiError: "❌ Kesalahan mengambil makalah dari arXiv.\n\nSilakan coba lagi nanti.",
+		apiError:
+			"❌ Kesalahan mengambil makalah dari arXiv.\n\nSilakan coba lagi nanti.",
 		rateLimited:
 			"⏳ Terlalu banyak permintaan. Silakan tunggu {seconds} detik sebelum mencoba lagi.",
 		invalidCommand:
 			"❓ Perintah tidak dikenal.\n\nGunakan /help untuk melihat semua perintah yang tersedia.",
-		invalidInput: "❌ Input tidak valid.\n\nSilakan periksa input Anda dan coba lagi.",
+		invalidInput:
+			"❌ Input tidak valid.\n\nSilakan periksa input Anda dan coba lagi.",
 		notFound: "❌ Tidak ditemukan.",
 		unauthorized: "🔒 Anda tidak memiliki izin untuk melakukan tindakan ini.",
 		tryAgain: "Silakan coba lagi nanti.",
