@@ -426,6 +426,118 @@ ${MESSAGES.SEARCH_TIP}
 		return context.send(message, { reply_markup: keyboard });
 	})
 
+	// --- SAVE COMMAND ---
+	.command("save", async (context) => {
+		if (!checkRateLimit(context.chatId, { maxRequests: 30, windowMs: 60000 })) {
+			return context.send(formatRateLimitMessage(context.chatId));
+		}
+
+		const userId = await ensureUser(context.chatId, context.research_session);
+		if (!userId) {
+			return context.send("❌ Could not save paper. Please try again.");
+		}
+
+		// Get the arXiv ID or URL from command argument
+		const args = context.text?.replace(/^\/save\s*/, "").trim();
+
+		if (!args) {
+			return context.send(
+				format`${bold`📥 Save Paper to Bookmarks`}
+
+To save a paper, provide the arXiv ID or URL:
+
+${bold`Usage:`}
+/save 2301.00001
+/save https://arxiv.org/abs/2301.00001
+
+${bold`Tip:`} You can also save papers directly from search results using the ☆ Save button!`,
+			);
+		}
+
+		// Extract arXiv ID from input (could be URL or just ID)
+		const { extractArxivId } = await import("../utils/export.js");
+		let arxivId = extractArxivId(args);
+
+		// If not found via URL patterns, try treating the whole input as an ID
+		if (!arxivId) {
+			// Clean up the input - remove any whitespace and common prefixes
+			const cleaned = args.replace(/^arxiv:/i, "").trim();
+			// Check if it looks like an arXiv ID (e.g., 2301.00001 or cs/0001001)
+			if (
+				/^\d{4}\.\d{4,5}(v\d+)?$/.test(cleaned) ||
+				/^[a-z-]+\/\d{7}$/i.test(cleaned)
+			) {
+				arxivId = cleaned;
+			}
+		}
+
+		if (!arxivId) {
+			return context.send(
+				format`❌ Invalid arXiv ID or URL.
+
+${bold`Valid formats:`}
+• 2301.00001
+• arxiv:2301.00001
+• https://arxiv.org/abs/2301.00001
+• https://arxiv.org/pdf/2301.00001.pdf`,
+			);
+		}
+
+		// Check if already bookmarked
+		const alreadyBookmarked = await checkBookmarked(userId, arxivId);
+		if (alreadyBookmarked) {
+			return context.send(
+				format`📌 This paper is already in your bookmarks!
+
+Use /bookmarks to view your saved papers.`,
+			);
+		}
+
+		// Fetch the paper from arXiv
+		await context.send("🔍 Fetching paper from arXiv...");
+
+		const paper = await fetchPaperById(arxivId);
+
+		if (!paper) {
+			return context.send(
+				format`❌ Paper not found on arXiv.
+
+Please check the ID and try again. The paper might have been removed or the ID might be incorrect.`,
+			);
+		}
+
+		// Add to bookmarks
+		const bookmark = await addBookmark(userId, paper);
+
+		if (!bookmark) {
+			return context.send("❌ Failed to save paper. Please try again.");
+		}
+
+		// Format authors
+		const authors = paper.authors || [];
+		const authorStr =
+			authors.length > 2
+				? `${authors.slice(0, 2).join(", ")} et al.`
+				: authors.length > 0
+					? authors.join(", ")
+					: "Unknown";
+
+		const keyboard = new InlineKeyboard()
+			.text("📚 View Bookmarks", "action:bookmarks")
+			.text("🔍 Search More", "action:search");
+
+		return context.send(
+			format`✅ ${bold`Paper saved to bookmarks!`}
+
+${bold`${paper.title}`}
+
+👥 ${authorStr}
+📅 ${paper.published}
+🔗 ${paper.link}`,
+			{ reply_markup: keyboard },
+		);
+	})
+
 	.command("history", async (context) => {
 		if (!checkRateLimit(context.chatId)) {
 			return context.send(formatRateLimitMessage(context.chatId));
