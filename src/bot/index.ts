@@ -371,6 +371,7 @@ ${bold`Search Commands:`}
 
 ${bold`History & Bookmarks:`}
 /bookmarks - View saved papers
+/save [arxiv_id] - Save a paper by ID or URL
 /history - View search history
 /stats - Your statistics
 /export - Export bookmarks as BibTeX
@@ -794,6 +795,7 @@ ${bold`📖 Help & Commands`}
 ${bold`/search [topic]`} - Search for papers
 ${bold`/author [name]`} - Search by author
 ${bold`/bookmarks`} - View saved papers
+${bold`/save [arxiv_id]`} - Save a paper by ID or URL
 ${bold`/history`} - Search history
 ${bold`/more`} - Load more results
 
