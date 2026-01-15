@@ -5,7 +5,7 @@
  * Generates unique tokens for secure download links.
  */
 
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import { logger } from "./logger.js";
 
 export interface ExportData {

@@ -6,10 +6,7 @@
  */
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import {
-	getExport,
-	getExportMimeType,
-} from "../../src/utils/exportStorage.js";
+import { getExport, getExportMimeType } from "../../src/utils/exportStorage.js";
 import { logger } from "../../src/utils/logger.js";
 
 export default async function handler(
@@ -36,7 +33,8 @@ export default async function handler(
 		logger.warn("Export not found or expired", { token });
 		return res.status(404).json({
 			error: "Export not found or expired",
-			message: "This download link has expired. Please request a new export from the bot.",
+			message:
+				"This download link has expired. Please request a new export from the bot.",
 		});
 	}
 

@@ -8,13 +8,13 @@
 import { InlineKeyboard } from "gramio";
 import type { Paper } from "../arxiv.js";
 import {
-  createBookmark,
-  deleteBookmarkByArxivId,
-  findBookmarkByArxivId,
-  getBookmarkAuthors,
-  getUserBookmarkCount,
-  getUserBookmarks,
-  isBookmarked,
+	createBookmark,
+	deleteBookmarkByArxivId,
+	findBookmarkByArxivId,
+	getBookmarkAuthors,
+	getUserBookmarkCount,
+	getUserBookmarks,
+	isBookmarked,
 } from "../db/repositories/index.js";
 import type { Bookmark } from "../db/schema.js";
 import { extractArxivId, toBibTeX } from "../utils/export.js";
@@ -28,33 +28,33 @@ import { logger } from "../utils/logger.js";
  * @returns The created bookmark or null if failed/already exists
  */
 export async function addBookmark(
-  userId: number,
-  paper: Paper,
+	userId: number,
+	paper: Paper,
 ): Promise<Bookmark | null> {
-  const arxivId = extractArxivId(paper.link);
-  if (!arxivId) {
-    logger.warn("Could not extract arXiv ID from paper link", {
-      link: paper.link,
-    });
-    return null;
-  }
+	const arxivId = extractArxivId(paper.link);
+	if (!arxivId) {
+		logger.warn("Could not extract arXiv ID from paper link", {
+			link: paper.link,
+		});
+		return null;
+	}
 
-  // Check if already bookmarked
-  const existing = await findBookmarkByArxivId(userId, arxivId);
-  if (existing) {
-    logger.debug("Paper already bookmarked", { userId, arxivId });
-    return existing;
-  }
+	// Check if already bookmarked
+	const existing = await findBookmarkByArxivId(userId, arxivId);
+	if (existing) {
+		logger.debug("Paper already bookmarked", { userId, arxivId });
+		return existing;
+	}
 
-  return createBookmark(userId, {
-    arxivId,
-    title: paper.title,
-    authors: paper.authors,
-    summary: paper.summary,
-    link: paper.link,
-    categories: paper.categories,
-    publishedDate: paper.published,
-  });
+	return createBookmark(userId, {
+		arxivId,
+		title: paper.title,
+		authors: paper.authors,
+		summary: paper.summary,
+		link: paper.link,
+		categories: paper.categories,
+		publishedDate: paper.published,
+	});
 }
 
 /**
@@ -65,10 +65,10 @@ export async function addBookmark(
  * @returns true if removed, false otherwise
  */
 export async function removeBookmark(
-  userId: number,
-  arxivId: string,
+	userId: number,
+	arxivId: string,
 ): Promise<boolean> {
-  return deleteBookmarkByArxivId(userId, arxivId);
+	return deleteBookmarkByArxivId(userId, arxivId);
 }
 
 /**
@@ -79,22 +79,22 @@ export async function removeBookmark(
  * @returns Object with new status and bookmark (if added)
  */
 export async function toggleBookmark(
-  userId: number,
-  paper: Paper,
+	userId: number,
+	paper: Paper,
 ): Promise<{ isBookmarked: boolean; bookmark: Bookmark | null }> {
-  const arxivId = extractArxivId(paper.link);
-  if (!arxivId) {
-    return { isBookmarked: false, bookmark: null };
-  }
+	const arxivId = extractArxivId(paper.link);
+	if (!arxivId) {
+		return { isBookmarked: false, bookmark: null };
+	}
 
-  const existing = await findBookmarkByArxivId(userId, arxivId);
-  if (existing) {
-    await deleteBookmarkByArxivId(userId, arxivId);
-    return { isBookmarked: false, bookmark: null };
-  }
+	const existing = await findBookmarkByArxivId(userId, arxivId);
+	if (existing) {
+		await deleteBookmarkByArxivId(userId, arxivId);
+		return { isBookmarked: false, bookmark: null };
+	}
 
-  const bookmark = await addBookmark(userId, paper);
-  return { isBookmarked: true, bookmark };
+	const bookmark = await addBookmark(userId, paper);
+	return { isBookmarked: true, bookmark };
 }
 
 /**
@@ -105,10 +105,10 @@ export async function toggleBookmark(
  * @returns true if bookmarked
  */
 export async function checkBookmarked(
-  userId: number,
-  arxivId: string,
+	userId: number,
+	arxivId: string,
 ): Promise<boolean> {
-  return isBookmarked(userId, arxivId);
+	return isBookmarked(userId, arxivId);
 }
 
 /**
@@ -120,22 +120,22 @@ export async function checkBookmarked(
  * @returns Array of bookmarks
  */
 export async function getBookmarksPaginated(
-  userId: number,
-  page = 1,
-  pageSize = 5,
+	userId: number,
+	page = 1,
+	pageSize = 5,
 ): Promise<{ bookmarks: Bookmark[]; total: number; hasMore: boolean }> {
-  const offset = (page - 1) * pageSize;
-  const bookmarks = await getUserBookmarks(userId, {
-    limit: pageSize,
-    offset,
-  });
-  const total = await getUserBookmarkCount(userId);
+	const offset = (page - 1) * pageSize;
+	const bookmarks = await getUserBookmarks(userId, {
+		limit: pageSize,
+		offset,
+	});
+	const total = await getUserBookmarkCount(userId);
 
-  return {
-    bookmarks,
-    total,
-    hasMore: offset + bookmarks.length < total,
-  };
+	return {
+		bookmarks,
+		total,
+		hasMore: offset + bookmarks.length < total,
+	};
 }
 
 /**
@@ -146,16 +146,16 @@ export async function getBookmarksPaginated(
  * @returns Formatted string
  */
 export function formatBookmarkMessage(
-  bookmark: Bookmark,
-  index?: number,
+	bookmark: Bookmark,
+	index?: number,
 ): string {
-  const prefix = index !== undefined ? `${index + 1}. ` : "";
-  const authors = getBookmarkAuthors(bookmark);
-  const authorStr =
-    authors.length > 0 ? authors.slice(0, 2).join(", ") : "Unknown";
-  const moreAuthors = authors.length > 2 ? " et al." : "";
+	const prefix = index !== undefined ? `${index + 1}. ` : "";
+	const authors = getBookmarkAuthors(bookmark);
+	const authorStr =
+		authors.length > 0 ? authors.slice(0, 2).join(", ") : "Unknown";
+	const moreAuthors = authors.length > 2 ? " et al." : "";
 
-  return `${prefix}${bookmark.title}\n👥 ${authorStr}${moreAuthors}\n📅 ${bookmark.publishedDate || "Unknown date"}\n🔗 ${bookmark.link}`;
+	return `${prefix}${bookmark.title}\n👥 ${authorStr}${moreAuthors}\n📅 ${bookmark.publishedDate || "Unknown date"}\n🔗 ${bookmark.link}`;
 }
 
 /**
@@ -166,16 +166,16 @@ export function formatBookmarkMessage(
  * @returns Formatted string
  */
 export function formatBookmarksListMessage(
-  bookmarks: Bookmark[],
-  startIndex = 0,
+	bookmarks: Bookmark[],
+	startIndex = 0,
 ): string {
-  if (bookmarks.length === 0) {
-    return "📚 You don't have any bookmarks yet.\n\nUse the ⭐ button when viewing papers to save them!";
-  }
+	if (bookmarks.length === 0) {
+		return "📚 You don't have any bookmarks yet.\n\nUse the ⭐ button when viewing papers to save them!";
+	}
 
-  return bookmarks
-    .map((b, i) => formatBookmarkMessage(b, startIndex + i))
-    .join("\n\n");
+	return bookmarks
+		.map((b, i) => formatBookmarkMessage(b, startIndex + i))
+		.join("\n\n");
 }
 
 /**
@@ -187,30 +187,30 @@ export function formatBookmarksListMessage(
  * @returns InlineKeyboard
  */
 export function createBookmarksKeyboard(
-  page: number,
-  hasMore: boolean,
-  _total: number,
+	page: number,
+	hasMore: boolean,
+	_total: number,
 ): InlineKeyboard {
-  const keyboard = new InlineKeyboard();
+	const keyboard = new InlineKeyboard();
 
-  // Navigation row
-  if (page > 1) {
-    keyboard.text("⬅️ Previous", `bookmarks:page:${page - 1}`);
-  }
+	// Navigation row
+	if (page > 1) {
+		keyboard.text("⬅️ Previous", `bookmarks:page:${page - 1}`);
+	}
 
-  keyboard.text(`📖 ${page}`, "bookmarks:noop");
+	keyboard.text(`📖 ${page}`, "bookmarks:noop");
 
-  if (hasMore) {
-    keyboard.text("Next ➡️", `bookmarks:page:${page + 1}`);
-  }
+	if (hasMore) {
+		keyboard.text("Next ➡️", `bookmarks:page:${page + 1}`);
+	}
 
-  keyboard.row();
+	keyboard.row();
 
-  // Action row
-  keyboard.text("🔍 Search", "action:search");
-  keyboard.text("🗑️ Clear All", "bookmarks:clear");
+	// Action row
+	keyboard.text("🔍 Search", "action:search");
+	keyboard.text("🗑️ Clear All", "bookmarks:clear");
 
-  return keyboard;
+	return keyboard;
 }
 
 /**
@@ -221,24 +221,24 @@ export function createBookmarksKeyboard(
  * @returns InlineKeyboard
  */
 export function createPaperActionsKeyboard(
-  arxivId: string,
-  isCurrentlyBookmarked: boolean,
+	arxivId: string,
+	isCurrentlyBookmarked: boolean,
 ): InlineKeyboard {
-  const keyboard = new InlineKeyboard();
+	const keyboard = new InlineKeyboard();
 
-  keyboard.text("📖 Abstract", `abstract:${arxivId}`);
+	keyboard.text("📖 Abstract", `abstract:${arxivId}`);
 
-  if (isCurrentlyBookmarked) {
-    keyboard.text("⭐ Saved", `unbookmark:${arxivId}`);
-  } else {
-    keyboard.text("☆ Save", `bookmark:${arxivId}`);
-  }
+	if (isCurrentlyBookmarked) {
+		keyboard.text("⭐ Saved", `unbookmark:${arxivId}`);
+	} else {
+		keyboard.text("☆ Save", `bookmark:${arxivId}`);
+	}
 
-  keyboard.row();
-  keyboard.text("📥 BibTeX", `bibtex:${arxivId}`);
-  keyboard.text("📄 PDF", `pdf:${arxivId}`);
+	keyboard.row();
+	keyboard.text("📥 BibTeX", `bibtex:${arxivId}`);
+	keyboard.text("📄 PDF", `pdf:${arxivId}`);
 
-  return keyboard;
+	return keyboard;
 }
 
 /**
@@ -248,18 +248,18 @@ export function createPaperActionsKeyboard(
  * @returns BibTeX string
  */
 export function bookmarkToBibTeX(bookmark: Bookmark): string {
-  const authors = getBookmarkAuthors(bookmark);
+	const authors = getBookmarkAuthors(bookmark);
 
-  return toBibTeX({
-    title: bookmark.title,
-    summary: bookmark.summary || "",
-    link: bookmark.link,
-    published: bookmark.publishedDate || "",
-    authors: authors.length > 0 ? authors : undefined,
-    categories: bookmark.categories
-      ? JSON.parse(bookmark.categories)
-      : undefined,
-  });
+	return toBibTeX({
+		title: bookmark.title,
+		summary: bookmark.summary || "",
+		link: bookmark.link,
+		published: bookmark.publishedDate || "",
+		authors: authors.length > 0 ? authors : undefined,
+		categories: bookmark.categories
+			? JSON.parse(bookmark.categories)
+			: undefined,
+	});
 }
 
 /**
@@ -269,15 +269,15 @@ export function bookmarkToBibTeX(bookmark: Bookmark): string {
  * @returns BibTeX string with all bookmarks
  */
 export async function exportAllBookmarksToBibTeX(
-  userId: number,
+	userId: number,
 ): Promise<string> {
-  const bookmarks = await getUserBookmarks(userId, { limit: 1000 });
+	const bookmarks = await getUserBookmarks(userId, { limit: 1000 });
 
-  if (bookmarks.length === 0) {
-    return "";
-  }
+	if (bookmarks.length === 0) {
+		return "";
+	}
 
-  return bookmarks.map(bookmarkToBibTeX).join("\n\n");
+	return bookmarks.map(bookmarkToBibTeX).join("\n\n");
 }
 
 /**
@@ -285,14 +285,14 @@ export async function exportAllBookmarksToBibTeX(
  * Handles quotes, commas, and newlines
  */
 function escapeCSVValue(value: string): string {
-  if (!value) return "";
+	if (!value) return "";
 
-  // If the value contains quotes, commas, or newlines, wrap in quotes and escape internal quotes
-  if (value.includes('"') || value.includes(",") || value.includes("\n")) {
-    return `"${value.replace(/"/g, '""')}"`;
-  }
+	// If the value contains quotes, commas, or newlines, wrap in quotes and escape internal quotes
+	if (value.includes('"') || value.includes(",") || value.includes("\n")) {
+		return `"${value.replace(/"/g, '""')}"`;
+	}
 
-  return value;
+	return value;
 }
 
 /**
@@ -302,30 +302,30 @@ function escapeCSVValue(value: string): string {
  * @returns CSV row string
  */
 export function bookmarkToCSVRow(bookmark: Bookmark): string {
-  const authors = getBookmarkAuthors(bookmark);
-  const arxivId = extractArxivId(bookmark.link) || "";
-  const categories = bookmark.categories
-    ? JSON.parse(bookmark.categories).join("; ")
-    : "";
+	const authors = getBookmarkAuthors(bookmark);
+	const arxivId = extractArxivId(bookmark.link) || "";
+	const categories = bookmark.categories
+		? JSON.parse(bookmark.categories).join("; ")
+		: "";
 
-  const fields = [
-    escapeCSVValue(arxivId),
-    escapeCSVValue(bookmark.title),
-    escapeCSVValue(authors.join("; ")),
-    escapeCSVValue(bookmark.publishedDate || ""),
-    escapeCSVValue(categories),
-    escapeCSVValue(bookmark.link),
-    escapeCSVValue(bookmark.summary || ""),
-  ];
+	const fields = [
+		escapeCSVValue(arxivId),
+		escapeCSVValue(bookmark.title),
+		escapeCSVValue(authors.join("; ")),
+		escapeCSVValue(bookmark.publishedDate || ""),
+		escapeCSVValue(categories),
+		escapeCSVValue(bookmark.link),
+		escapeCSVValue(bookmark.summary || ""),
+	];
 
-  return fields.join(",");
+	return fields.join(",");
 }
 
 /**
  * Get CSV header row
  */
 export function getCSVHeader(): string {
-  return "arXiv ID,Title,Authors,Published Date,Categories,URL,Abstract";
+	return "arXiv ID,Title,Authors,Published Date,Categories,URL,Abstract";
 }
 
 /**
@@ -335,16 +335,16 @@ export function getCSVHeader(): string {
  * @returns CSV string with all bookmarks
  */
 export async function exportAllBookmarksToCSV(userId: number): Promise<string> {
-  const bookmarks = await getUserBookmarks(userId, { limit: 1000 });
+	const bookmarks = await getUserBookmarks(userId, { limit: 1000 });
 
-  if (bookmarks.length === 0) {
-    return "";
-  }
+	if (bookmarks.length === 0) {
+		return "";
+	}
 
-  const header = getCSVHeader();
-  const rows = bookmarks.map(bookmarkToCSVRow);
+	const header = getCSVHeader();
+	const rows = bookmarks.map(bookmarkToCSVRow);
 
-  return [header, ...rows].join("\n");
+	return [header, ...rows].join("\n");
 }
 
 /**
@@ -354,5 +354,5 @@ export async function exportAllBookmarksToCSV(userId: number): Promise<string> {
  * @returns Number of bookmarks
  */
 export async function getExportBookmarkCount(userId: number): Promise<number> {
-  return getUserBookmarkCount(userId);
+	return getUserBookmarkCount(userId);
 }
