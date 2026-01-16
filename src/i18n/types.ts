@@ -84,6 +84,11 @@ export interface Translations {
 		exists: string;
 		exportTitle: string;
 		exportEmpty: string;
+		total: string;
+		searchButton: string;
+		clearAllButton: string;
+		alreadyBookmarked: string;
+		couldNotLoad: string;
 	};
 
 	// History
@@ -92,6 +97,13 @@ export interface Translations {
 		empty: string;
 		cleared: string;
 		clearConfirm: string;
+		recentSearches: string;
+		tapToSearch: string;
+		fullHistory: string;
+		clearHistory: string;
+		newSearch: string;
+		noHistory: string;
+		startSearching: string;
 	};
 
 	// Subscriptions
@@ -104,6 +116,9 @@ export interface Translations {
 		prompt: string;
 		interval: string;
 		manage: string;
+		addSubscription: string;
+		noSubscriptions: string;
+		useSubscribe: string;
 	};
 
 	// Errors
@@ -129,6 +144,8 @@ export interface Translations {
 		back: string;
 		confirm: string;
 		settings: string;
+		search: string;
+		searchPapers: string;
 	};
 
 	// Stats
@@ -177,6 +194,27 @@ export interface Translations {
 		myBookmarks: string;
 		history: string;
 		help: string;
+	};
+
+	// Help page
+	helpPage: {
+		title: string;
+		searchCommands: string;
+		searchTopic: string;
+		searchAuthor: string;
+		browseCategory: string;
+		findSimilar: string;
+		historyBookmarks: string;
+		viewBookmarks: string;
+		savePaper: string;
+		viewHistory: string;
+		viewStats: string;
+		exportBibtex: string;
+		subscriptionsTitle: string;
+		subscribeTopic: string;
+		manageSubscriptions: string;
+		unsubscribeTopic: string;
+		loadMore: string;
 	};
 }
 

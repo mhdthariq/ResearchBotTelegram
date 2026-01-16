@@ -194,6 +194,14 @@ function formatRateLimitMessage(chatId: number): string {
 }
 
 /**
+ * Get the user's preferred language
+ */
+async function getUserLanguage(chatId: number): Promise<LanguageCode> {
+	const user = await findUserByChatId(chatId);
+	return (user?.language as LanguageCode) || "en";
+}
+
+/**
  * Get or create user in database and update session
  */
 async function ensureUser(
@@ -368,43 +376,39 @@ ${t(userLang, "language.select")}
 		);
 	})
 
-	.command("help", (context) => {
+	.command("help", async (context) => {
 		// Rate limit check
 		if (!checkRateLimit(context.chatId, { maxRequests: 60 })) {
 			return context.send(formatRateLimitMessage(context.chatId));
 		}
 
+		const userLang = await getUserLanguage(context.chatId);
+
 		return context.send(
 			format`
-${bold`📖 Help & Commands`}
+${bold`${t(userLang, "helpPage.title")}`}
 
-${bold`Search Commands:`}
-/search [topic] - Search for papers
-/author [name] - Search by author
-/category - Browse by category
-/similar [arxiv_id] - Find similar papers
+${bold`${t(userLang, "helpPage.searchCommands")}`}
+${t(userLang, "helpPage.searchTopic")}
+${t(userLang, "helpPage.searchAuthor")}
+${t(userLang, "helpPage.browseCategory")}
+${t(userLang, "helpPage.findSimilar")}
 
-${bold`History & Bookmarks:`}
-/bookmarks - View saved papers
-/save [arxiv_id] - Save a paper by ID or URL
-/history - View search history
-/stats - Your statistics
-/export - Export bookmarks as BibTeX
+${bold`${t(userLang, "helpPage.historyBookmarks")}`}
+${t(userLang, "helpPage.viewBookmarks")}
+${t(userLang, "helpPage.savePaper")}
+${t(userLang, "helpPage.viewHistory")}
+${t(userLang, "helpPage.viewStats")}
+${t(userLang, "helpPage.exportBibtex")}
 
-${bold`Subscriptions:`}
-/subscribe [topic] - Get daily updates
-/unsubscribe [topic] - Remove subscription
-/subscriptions - View all subscriptions
+${bold`${t(userLang, "helpPage.subscriptionsTitle")}`}
+${t(userLang, "helpPage.subscribeTopic")}
+${t(userLang, "helpPage.manageSubscriptions")}
+${t(userLang, "helpPage.unsubscribeTopic")}
 
-${bold`Other:`}
-/more - Load more results
-/start - Show main menu
-/help - Show this help
+${bold`${t(userLang, "helpPage.loadMore")}`}
 
-${bold`Inline Mode:`}
-Type @botname query in any chat to search!
-
-${MESSAGES.SEARCH_TIP}
+${t(userLang, "search.tip")}
       `,
 		);
 	})
@@ -414,11 +418,10 @@ ${MESSAGES.SEARCH_TIP}
 			return context.send(formatRateLimitMessage(context.chatId));
 		}
 
+		const userLang = await getUserLanguage(context.chatId);
 		const userId = await ensureUser(context.chatId, context.research_session);
 		if (!userId) {
-			return context.send(
-				"❌ Could not load your bookmarks. Please try again.",
-			);
+			return context.send(t(userLang, "bookmarks.couldNotLoad"));
 		}
 
 		const { bookmarks, total, hasMore } = await getBookmarksPaginated(
@@ -429,14 +432,16 @@ ${MESSAGES.SEARCH_TIP}
 
 		if (bookmarks.length === 0) {
 			const keyboard = new InlineKeyboard().text(
-				"🔍 Search Papers",
+				t(userLang, "buttons.searchPapers"),
 				"action:search",
 			);
 
-			return context.send(MESSAGES.NO_BOOKMARKS, { reply_markup: keyboard });
+			return context.send(t(userLang, "bookmarks.empty"), {
+				reply_markup: keyboard,
+			});
 		}
 
-		const message = format`${bold`📚 Your Bookmarks`} (${total} total)\n\n${formatBookmarksListMessage(bookmarks)}`;
+		const message = format`${bold`${t(userLang, "bookmarks.title")}`} (${t(userLang, "bookmarks.total", { count: String(total) })})\n\n${formatBookmarksListMessage(bookmarks)}`;
 		const keyboard = createBookmarksKeyboard(1, hasMore, total);
 
 		return context.send(message, { reply_markup: keyboard });
@@ -559,28 +564,32 @@ ${bold`${paper.title}`}
 			return context.send(formatRateLimitMessage(context.chatId));
 		}
 
+		const userLang = await getUserLanguage(context.chatId);
 		const userId = await ensureUser(context.chatId, context.research_session);
 		if (!userId) {
-			return context.send("❌ Could not load your history. Please try again.");
+			return context.send(t(userLang, "error"));
 		}
 
 		const recentSearches = await getRecentSearches(userId, 6);
 
 		if (recentSearches.length === 0) {
 			const keyboard = new InlineKeyboard().text(
-				"🔍 Search Papers",
+				t(userLang, "buttons.searchPapers"),
 				"action:search",
 			);
 
-			return context.send("📜 No search history yet.\n\nStart with /search!", {
-				reply_markup: keyboard,
-			});
+			return context.send(
+				`${t(userLang, "history.noHistory")}\n\n${t(userLang, "history.startSearching")}`,
+				{
+					reply_markup: keyboard,
+				},
+			);
 		}
 
 		const keyboard = createRecentSearchesKeyboard(recentSearches, 6);
 
 		return context.send(
-			format`${bold`🕐 Recent Searches`}\n\nTap a search to run it again:`,
+			format`${bold`${t(userLang, "history.recentSearches")}`}\n\n${t(userLang, "history.tapToSearch")}`,
 			{ reply_markup: keyboard },
 		);
 	})

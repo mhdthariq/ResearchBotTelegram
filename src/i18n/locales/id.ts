@@ -41,7 +41,7 @@ export const id: Translations = {
 		results: "📄 Ditemukan {count} makalah untuk '{topic}'",
 		loadMore: "Muat Lebih Banyak",
 		newSearch: "🔍 Pencarian Baru",
-		tip: "💡 Tips: Gunakan istilah spesifik untuk hasil yang lebih baik.",
+		tip: '💡 Tips: Gunakan istilah spesifik seperti "transformer attention mechanism" daripada hanya "AI"',
 		searching: "🔍 Mencari makalah...",
 	},
 
@@ -68,6 +68,12 @@ export const id: Translations = {
 		exportTitle: "📚 Ekspor BibTeX",
 		exportEmpty:
 			"📚 Tidak ada bookmark untuk diekspor.\n\nSimpan beberapa makalah terlebih dahulu!",
+		total: "{count} total",
+		searchButton: "🔍 Cari",
+		clearAllButton: "🗑️ Hapus Semua",
+		alreadyBookmarked:
+			"📌 Makalah ini sudah ada di bookmark Anda!\n\nGunakan /bookmarks untuk melihat makalah yang disimpan.",
+		couldNotLoad: "❌ Tidak dapat memuat bookmark Anda. Silakan coba lagi.",
 	},
 
 	// History
@@ -75,9 +81,16 @@ export const id: Translations = {
 		title: "📜 Riwayat Pencarian",
 		empty:
 			"📜 Belum ada riwayat pencarian.\n\nMulai dengan /search untuk menemukan makalah!",
-		cleared: "📜 Riwayat pencarian berhasil dihapus.",
+		cleared: "📜 Riwayat pencarian dihapus.",
 		clearConfirm:
 			"Apakah Anda yakin ingin menghapus seluruh riwayat pencarian?",
+		recentSearches: "🕐 Pencarian Terbaru",
+		tapToSearch: "Ketuk pencarian untuk menjalankannya lagi:",
+		fullHistory: "📜 Riwayat Lengkap",
+		clearHistory: "🗑️ Hapus Riwayat",
+		newSearch: "🔍 Pencarian Baru",
+		noHistory: "📜 Belum ada riwayat pencarian.",
+		startSearching: "Mulai dengan /search!",
 	},
 
 	// Subscriptions
@@ -93,6 +106,9 @@ export const id: Translations = {
 			"📬 Topik apa yang ingin Anda langgani?\n\nContoh: /subscribe machine learning\nKategori opsional: /subscribe [cs.AI] neural networks",
 		interval: "Interval notifikasi",
 		manage: "Kelola",
+		addSubscription: "➕ Tambah Langganan",
+		noSubscriptions: "📭 Anda tidak memiliki langganan.",
+		useSubscribe: "Gunakan /subscribe <topik> untuk mendapatkan pembaruan.",
 	},
 
 	// Errors
@@ -122,6 +138,8 @@ export const id: Translations = {
 		back: "⬅️ Kembali",
 		confirm: "✅ Konfirmasi",
 		settings: "⚙️ Pengaturan",
+		search: "🔍 Cari",
+		searchPapers: "🔍 Cari Makalah",
 	},
 
 	// Stats
@@ -171,6 +189,27 @@ export const id: Translations = {
 		myBookmarks: "Bookmark Saya",
 		history: "Riwayat",
 		help: "Bantuan",
+	},
+
+	// Help page
+	helpPage: {
+		title: "📖 Bantuan & Perintah",
+		searchCommands: "Perintah Pencarian:",
+		searchTopic: "/search [topik] - Cari makalah",
+		searchAuthor: "/author [nama] - Cari berdasarkan penulis",
+		browseCategory: "/category - Jelajahi berdasarkan kategori",
+		findSimilar: "/similar [arxiv_id] - Temukan makalah serupa",
+		historyBookmarks: "Riwayat & Bookmark:",
+		viewBookmarks: "/bookmarks - Lihat makalah tersimpan",
+		savePaper: "/save [arxiv_id] - Simpan makalah berdasarkan ID atau URL",
+		viewHistory: "/history - Riwayat pencarian",
+		viewStats: "/stats - Statistik Anda",
+		exportBibtex: "/export - Ekspor bookmark sebagai BibTeX",
+		subscriptionsTitle: "Langganan:",
+		subscribeTopic: "/subscribe [topik] - Dapatkan pembaruan tentang topik",
+		manageSubscriptions: "/subscriptions - Kelola langganan",
+		unsubscribeTopic: "/unsubscribe [id] - Hapus langganan",
+		loadMore: "/more - Muat lebih banyak hasil",
 	},
 };
 

@@ -41,7 +41,7 @@ export const de: Translations = {
 		results: "📄 {count} Arbeiten für '{topic}' gefunden",
 		loadMore: "Mehr laden",
 		newSearch: "🔍 Neue Suche",
-		tip: "💡 Tipp: Verwende spezifische Begriffe für bessere Ergebnisse.",
+		tip: '💡 Tipp: Verwende spezifische Begriffe wie „transformer attention mechanism" statt nur „AI"',
 		searching: "🔍 Suche nach Arbeiten...",
 	},
 
@@ -68,6 +68,13 @@ export const de: Translations = {
 		exportTitle: "📚 BibTeX-Export",
 		exportEmpty:
 			"📚 Keine Lesezeichen zum Exportieren.\n\nSpeichere zuerst einige Arbeiten!",
+		total: "{count} gesamt",
+		searchButton: "🔍 Suchen",
+		clearAllButton: "🗑️ Alle löschen",
+		alreadyBookmarked:
+			"📌 Diese Arbeit ist bereits in deinen Lesezeichen!\n\nVerwende /bookmarks um deine gespeicherten Arbeiten anzuzeigen.",
+		couldNotLoad:
+			"❌ Lesezeichen konnten nicht geladen werden. Bitte versuche es erneut.",
 	},
 
 	// History
@@ -75,9 +82,16 @@ export const de: Translations = {
 		title: "📜 Suchverlauf",
 		empty:
 			"📜 Noch kein Suchverlauf.\n\nBeginne mit /search um Arbeiten zu finden!",
-		cleared: "📜 Suchverlauf erfolgreich gelöscht.",
+		cleared: "📜 Suchverlauf gelöscht.",
 		clearConfirm:
 			"Bist du sicher, dass du deinen gesamten Suchverlauf löschen möchtest?",
+		recentSearches: "🕐 Letzte Suchen",
+		tapToSearch: "Tippe auf eine Suche, um sie erneut auszuführen:",
+		fullHistory: "📜 Vollständiger Verlauf",
+		clearHistory: "🗑️ Verlauf löschen",
+		newSearch: "🔍 Neue Suche",
+		noHistory: "📜 Noch kein Suchverlauf.",
+		startSearching: "Beginne mit /search!",
 	},
 
 	// Subscriptions
@@ -93,6 +107,9 @@ export const de: Translations = {
 			"📬 Welches Thema möchtest du abonnieren?\n\nBeispiel: /subscribe machine learning\nOptionale Kategorie: /subscribe [cs.AI] neural networks",
 		interval: "Benachrichtigungsintervall",
 		manage: "Verwalten",
+		addSubscription: "➕ Abonnement hinzufügen",
+		noSubscriptions: "📭 Du hast keine Abonnements.",
+		useSubscribe: "Verwende /subscribe <Thema> um Updates zu erhalten.",
 	},
 
 	// Errors
@@ -115,13 +132,15 @@ export const de: Translations = {
 		previous: "⬅️ Zurück",
 		next: "➡️ Weiter",
 		bookmark: "🔖 Speichern",
-		unbookmark: "🗑️ Entfernen",
+		unbookmark: "🗑️ Lesezeichen entfernen",
 		details: "📋 Details",
 		similar: "🔗 Ähnliche Arbeiten",
 		bibtex: "📝 BibTeX",
 		back: "⬅️ Zurück",
 		confirm: "✅ Bestätigen",
 		settings: "⚙️ Einstellungen",
+		search: "🔍 Suchen",
+		searchPapers: "🔍 Arbeiten suchen",
 	},
 
 	// Stats
@@ -172,6 +191,27 @@ export const de: Translations = {
 		myBookmarks: "Meine Lesezeichen",
 		history: "Verlauf",
 		help: "Hilfe",
+	},
+
+	// Help page
+	helpPage: {
+		title: "📖 Hilfe & Befehle",
+		searchCommands: "Suchbefehle:",
+		searchTopic: "/search [Thema] - Nach Arbeiten suchen",
+		searchAuthor: "/author [Name] - Nach Autor suchen",
+		browseCategory: "/category - Nach Kategorie durchsuchen",
+		findSimilar: "/similar [arxiv_id] - Ähnliche Arbeiten finden",
+		historyBookmarks: "Verlauf & Lesezeichen:",
+		viewBookmarks: "/bookmarks - Gespeicherte Arbeiten anzeigen",
+		savePaper: "/save [arxiv_id] - Arbeit per ID oder URL speichern",
+		viewHistory: "/history - Suchverlauf",
+		viewStats: "/stats - Deine Statistiken",
+		exportBibtex: "/export - Lesezeichen als BibTeX exportieren",
+		subscriptionsTitle: "Abonnements:",
+		subscribeTopic: "/subscribe [Thema] - Updates zu einem Thema erhalten",
+		manageSubscriptions: "/subscriptions - Abonnements verwalten",
+		unsubscribeTopic: "/unsubscribe [id] - Abonnement entfernen",
+		loadMore: "/more - Mehr Ergebnisse laden",
 	},
 };
 

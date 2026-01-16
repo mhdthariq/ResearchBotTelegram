@@ -44,7 +44,7 @@ export const en: Translations = {
 		results: "📄 Found {count} papers for '{topic}'",
 		loadMore: "Load More",
 		newSearch: "🔍 New Search",
-		tip: "💡 Tip: Use specific terms for better results.",
+		tip: '💡 Tip: Use specific terms like "transformer attention mechanism" instead of just "AI"',
 		searching: "🔍 Searching for papers...",
 	},
 
@@ -70,14 +70,27 @@ export const en: Translations = {
 		exists: "📌 This paper is already bookmarked",
 		exportTitle: "📚 BibTeX Export",
 		exportEmpty: "📚 No bookmarks to export.\n\nSave some papers first!",
+		total: "{count} total",
+		searchButton: "🔍 Search",
+		clearAllButton: "🗑️ Clear All",
+		alreadyBookmarked:
+			"📌 This paper is already in your bookmarks!\n\nUse /bookmarks to view your saved papers.",
+		couldNotLoad: "❌ Could not load your bookmarks. Please try again.",
 	},
 
 	// History
 	history: {
 		title: "📜 Search History",
 		empty: "📜 No search history yet.\n\nStart with /search to find papers!",
-		cleared: "📜 Search history cleared successfully.",
+		cleared: "📜 Search history cleared.",
 		clearConfirm: "Are you sure you want to clear your entire search history?",
+		recentSearches: "🕐 Recent Searches",
+		tapToSearch: "Tap a search to run it again:",
+		fullHistory: "📜 Full History",
+		clearHistory: "🗑️ Clear History",
+		newSearch: "🔍 New Search",
+		noHistory: "📜 No search history yet.",
+		startSearching: "Start with /search!",
 	},
 
 	// Subscriptions
@@ -93,6 +106,9 @@ export const en: Translations = {
 			"📬 What topic would you like to subscribe to?\n\nExample: /subscribe machine learning\nOptional category: /subscribe [cs.AI] neural networks",
 		interval: "Notification interval",
 		manage: "Manage",
+		addSubscription: "➕ Add Subscription",
+		noSubscriptions: "📭 You don't have any subscriptions.",
+		useSubscribe: "Use /subscribe <topic> to get updates.",
 	},
 
 	// Errors
@@ -120,6 +136,8 @@ export const en: Translations = {
 		back: "⬅️ Back",
 		confirm: "✅ Confirm",
 		settings: "⚙️ Settings",
+		search: "🔍 Search",
+		searchPapers: "🔍 Search Papers",
 	},
 
 	// Stats
@@ -168,6 +186,27 @@ export const en: Translations = {
 		myBookmarks: "My Bookmarks",
 		history: "History",
 		help: "Help",
+	},
+
+	// Help page
+	helpPage: {
+		title: "📖 Help & Commands",
+		searchCommands: "Search Commands:",
+		searchTopic: "/search [topic] - Search for papers",
+		searchAuthor: "/author [name] - Search by author",
+		browseCategory: "/category - Browse by category",
+		findSimilar: "/similar [arxiv_id] - Find similar papers",
+		historyBookmarks: "History & Bookmarks:",
+		viewBookmarks: "/bookmarks - View saved papers",
+		savePaper: "/save [arxiv_id] - Save a paper by ID or URL",
+		viewHistory: "/history - Search history",
+		viewStats: "/stats - Your statistics",
+		exportBibtex: "/export - Export bookmarks as BibTeX",
+		subscriptionsTitle: "Subscriptions:",
+		subscribeTopic: "/subscribe [topic] - Get updates on a topic",
+		manageSubscriptions: "/subscriptions - Manage subscriptions",
+		unsubscribeTopic: "/unsubscribe [id] - Remove subscription",
+		loadMore: "/more - Load more results",
 	},
 };
 

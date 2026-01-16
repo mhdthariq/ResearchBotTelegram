@@ -43,7 +43,7 @@ export const pt: Translations = {
 		results: "📄 Encontrados {count} artigos para '{topic}'",
 		loadMore: "Carregar Mais",
 		newSearch: "🔍 Nova Pesquisa",
-		tip: "💡 Dica: Use termos específicos para melhores resultados.",
+		tip: '💡 Dica: Use termos específicos como "transformer attention mechanism" em vez de apenas "AI"',
 		searching: "🔍 Pesquisando artigos...",
 	},
 
@@ -70,6 +70,13 @@ export const pt: Translations = {
 		exportTitle: "📚 Exportação BibTeX",
 		exportEmpty:
 			"📚 Nenhum favorito para exportar.\n\nSalve alguns artigos primeiro!",
+		total: "{count} no total",
+		searchButton: "🔍 Pesquisar",
+		clearAllButton: "🗑️ Limpar Tudo",
+		alreadyBookmarked:
+			"📌 Este artigo já está nos seus favoritos!\n\nUse /bookmarks para ver seus artigos salvos.",
+		couldNotLoad:
+			"❌ Não foi possível carregar seus favoritos. Por favor, tente novamente.",
 	},
 
 	// History
@@ -77,9 +84,16 @@ export const pt: Translations = {
 		title: "📜 Histórico de Pesquisa",
 		empty:
 			"📜 Nenhum histórico ainda.\n\nComece com /search para encontrar artigos!",
-		cleared: "📜 Histórico de pesquisa limpo com sucesso.",
+		cleared: "📜 Histórico de pesquisa limpo.",
 		clearConfirm:
 			"Tem certeza de que deseja limpar todo o seu histórico de pesquisa?",
+		recentSearches: "🕐 Pesquisas Recentes",
+		tapToSearch: "Toque em uma pesquisa para executá-la novamente:",
+		fullHistory: "📜 Histórico Completo",
+		clearHistory: "🗑️ Limpar Histórico",
+		newSearch: "🔍 Nova Pesquisa",
+		noHistory: "📜 Nenhum histórico de pesquisa ainda.",
+		startSearching: "Comece com /search!",
 	},
 
 	// Subscriptions
@@ -95,6 +109,9 @@ export const pt: Translations = {
 			"📬 Em qual tema você gostaria de se inscrever?\n\nExemplo: /subscribe aprendizado de máquina\nCategoria opcional: /subscribe [cs.AI] redes neurais",
 		interval: "Intervalo de notificação",
 		manage: "Gerenciar",
+		addSubscription: "➕ Adicionar Inscrição",
+		noSubscriptions: "📭 Você não tem nenhuma inscrição.",
+		useSubscribe: "Use /subscribe <tema> para receber atualizações.",
 	},
 
 	// Errors
@@ -124,6 +141,8 @@ export const pt: Translations = {
 		back: "⬅️ Voltar",
 		confirm: "✅ Confirmar",
 		settings: "⚙️ Configurações",
+		search: "🔍 Pesquisar",
+		searchPapers: "🔍 Pesquisar Artigos",
 	},
 
 	// Stats
@@ -173,6 +192,27 @@ export const pt: Translations = {
 		myBookmarks: "Meus Favoritos",
 		history: "Histórico",
 		help: "Ajuda",
+	},
+
+	// Help page
+	helpPage: {
+		title: "📖 Ajuda e Comandos",
+		searchCommands: "Comandos de Pesquisa:",
+		searchTopic: "/search [tema] - Pesquisar artigos",
+		searchAuthor: "/author [nome] - Pesquisar por autor",
+		browseCategory: "/category - Navegar por categoria",
+		findSimilar: "/similar [arxiv_id] - Encontrar artigos semelhantes",
+		historyBookmarks: "Histórico e Favoritos:",
+		viewBookmarks: "/bookmarks - Ver artigos salvos",
+		savePaper: "/save [arxiv_id] - Salvar um artigo por ID ou URL",
+		viewHistory: "/history - Histórico de pesquisa",
+		viewStats: "/stats - Suas estatísticas",
+		exportBibtex: "/export - Exportar favoritos como BibTeX",
+		subscriptionsTitle: "Inscrições:",
+		subscribeTopic: "/subscribe [tema] - Receber atualizações sobre um tema",
+		manageSubscriptions: "/subscriptions - Gerenciar inscrições",
+		unsubscribeTopic: "/unsubscribe [id] - Remover inscrição",
+		loadMore: "/more - Carregar mais resultados",
 	},
 };
 

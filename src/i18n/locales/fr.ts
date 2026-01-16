@@ -41,7 +41,7 @@ export const fr: Translations = {
 		results: "📄 {count} articles trouvés pour '{topic}'",
 		loadMore: "Charger Plus",
 		newSearch: "🔍 Nouvelle Recherche",
-		tip: "💡 Conseil : Utilisez des termes spécifiques pour de meilleurs résultats.",
+		tip: "💡 Conseil : Utilisez des termes spécifiques comme « transformer attention mechanism » au lieu de simplement « AI »",
 		searching: "🔍 Recherche d'articles en cours...",
 	},
 
@@ -61,13 +61,19 @@ export const fr: Translations = {
 	bookmarks: {
 		title: "🔖 Vos Favoris",
 		empty:
-			"📚 Pas encore de favoris.\n\nSauvegardez des articles depuis les résultats de recherche !",
+			"📚 Pas encore de favoris.\n\nSauvegardez des articles depuis les résultats de recherche pour les voir ici !",
 		added: "✅ Article ajouté aux favoris !",
 		removed: "🗑️ Favori supprimé",
 		exists: "📌 Cet article est déjà dans vos favoris",
 		exportTitle: "📚 Export BibTeX",
 		exportEmpty:
 			"📚 Aucun favori à exporter.\n\nSauvegardez d'abord quelques articles !",
+		total: "{count} au total",
+		searchButton: "🔍 Rechercher",
+		clearAllButton: "🗑️ Tout Supprimer",
+		alreadyBookmarked:
+			"📌 Cet article est déjà dans vos favoris !\n\nUtilisez /bookmarks pour voir vos articles sauvegardés.",
+		couldNotLoad: "❌ Impossible de charger vos favoris. Veuillez réessayer.",
 	},
 
 	// History
@@ -75,16 +81,23 @@ export const fr: Translations = {
 		title: "📜 Historique de Recherche",
 		empty:
 			"📜 Pas encore d'historique.\n\nCommencez avec /search pour trouver des articles !",
-		cleared: "📜 Historique de recherche effacé avec succès.",
+		cleared: "📜 Historique de recherche effacé.",
 		clearConfirm:
 			"Êtes-vous sûr de vouloir effacer tout votre historique de recherche ?",
+		recentSearches: "🕐 Recherches Récentes",
+		tapToSearch: "Appuyez sur une recherche pour la relancer :",
+		fullHistory: "📜 Historique Complet",
+		clearHistory: "🗑️ Effacer l'Historique",
+		newSearch: "🔍 Nouvelle Recherche",
+		noHistory: "📜 Pas encore d'historique de recherche.",
+		startSearching: "Commencez avec /search !",
 	},
 
 	// Subscriptions
 	subscriptions: {
 		title: "📬 Vos Abonnements",
 		empty:
-			"📭 Vous n'avez pas encore d'abonnements.\n\nUtilisez /subscribe <sujet> pour recevoir des mises à jour périodiques.",
+			"📭 Vous n'avez pas encore d'abonnements.\n\nUtilisez /subscribe <sujet> pour recevoir des mises à jour périodiques sur les sujets de recherche qui vous intéressent.",
 		created:
 			"✅ Abonnement à '{topic}' réussi !\n\nVous recevrez des mises à jour sur les nouveaux articles.",
 		deleted: "🗑️ Abonnement supprimé avec succès",
@@ -93,6 +106,9 @@ export const fr: Translations = {
 			"📬 À quel sujet souhaitez-vous vous abonner ?\n\nExemple : /subscribe machine learning\nCatégorie optionnelle : /subscribe [cs.AI] réseaux neuronaux",
 		interval: "Intervalle de notification",
 		manage: "Gérer",
+		addSubscription: "➕ Ajouter un Abonnement",
+		noSubscriptions: "📭 Vous n'avez aucun abonnement.",
+		useSubscribe: "Utilisez /subscribe <sujet> pour recevoir des mises à jour.",
 	},
 
 	// Errors
@@ -122,6 +138,8 @@ export const fr: Translations = {
 		back: "⬅️ Retour",
 		confirm: "✅ Confirmer",
 		settings: "⚙️ Paramètres",
+		search: "🔍 Rechercher",
+		searchPapers: "🔍 Rechercher des Articles",
 	},
 
 	// Stats
@@ -173,6 +191,28 @@ export const fr: Translations = {
 		myBookmarks: "Mes Favoris",
 		history: "Historique",
 		help: "Aide",
+	},
+
+	// Help page
+	helpPage: {
+		title: "📖 Aide et Commandes",
+		searchCommands: "Commandes de Recherche :",
+		searchTopic: "/search [sujet] - Rechercher des articles",
+		searchAuthor: "/author [nom] - Rechercher par auteur",
+		browseCategory: "/category - Parcourir par catégorie",
+		findSimilar: "/similar [arxiv_id] - Trouver des articles similaires",
+		historyBookmarks: "Historique et Favoris :",
+		viewBookmarks: "/bookmarks - Voir les articles sauvegardés",
+		savePaper: "/save [arxiv_id] - Sauvegarder un article par ID ou URL",
+		viewHistory: "/history - Historique de recherche",
+		viewStats: "/stats - Vos statistiques",
+		exportBibtex: "/export - Exporter les favoris en BibTeX",
+		subscriptionsTitle: "Abonnements :",
+		subscribeTopic:
+			"/subscribe [sujet] - Recevoir des mises à jour sur un sujet",
+		manageSubscriptions: "/subscriptions - Gérer les abonnements",
+		unsubscribeTopic: "/unsubscribe [id] - Supprimer un abonnement",
+		loadMore: "/more - Charger plus de résultats",
 	},
 };
 

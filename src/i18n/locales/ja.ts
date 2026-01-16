@@ -43,7 +43,7 @@ export const ja: Translations = {
 		results: "📄 '{topic}'で{count}件の論文が見つかりました",
 		loadMore: "さらに読み込む",
 		newSearch: "🔍 新規検索",
-		tip: "💡 ヒント：より良い結果を得るには具体的な用語を使用してください。",
+		tip: "💡 ヒント：「AI」だけでなく「transformer attention mechanism」のような具体的な用語を使用してください",
 		searching: "🔍 論文を検索中...",
 	},
 
@@ -70,6 +70,13 @@ export const ja: Translations = {
 		exportTitle: "📚 BibTeXエクスポート",
 		exportEmpty:
 			"📚 エクスポートするブックマークがありません。\n\nまず論文を保存してください！",
+		total: "{count}件",
+		searchButton: "🔍 検索",
+		clearAllButton: "🗑️ すべて削除",
+		alreadyBookmarked:
+			"📌 この論文は既にブックマークに保存されています！\n\n/bookmarksで保存した論文を表示できます。",
+		couldNotLoad:
+			"❌ ブックマークを読み込めませんでした。もう一度お試しください。",
 	},
 
 	// History
@@ -77,8 +84,15 @@ export const ja: Translations = {
 		title: "📜 検索履歴",
 		empty:
 			"📜 検索履歴はまだありません。\n\n/searchで論文を検索してみましょう！",
-		cleared: "📜 検索履歴を正常にクリアしました。",
+		cleared: "📜 検索履歴をクリアしました。",
 		clearConfirm: "検索履歴をすべて削除してもよろしいですか？",
+		recentSearches: "🕐 最近の検索",
+		tapToSearch: "タップして再検索：",
+		fullHistory: "📜 全履歴",
+		clearHistory: "🗑️ 履歴をクリア",
+		newSearch: "🔍 新規検索",
+		noHistory: "📜 検索履歴はまだありません。",
+		startSearching: "/searchで検索を始めましょう！",
 	},
 
 	// Subscriptions
@@ -88,12 +102,15 @@ export const ja: Translations = {
 			"📭 まだ購読がありません。\n\n/subscribe <トピック>を使用して、関心のある研究トピックの定期更新を受け取りましょう。",
 		created:
 			"✅ '{topic}'の購読に成功しました！\n\n新しい論文の更新を受け取ります。",
-		deleted: "🗑️ 購読を正常に削除しました",
+		deleted: "🗑️ 購読を削除しました",
 		updated: "✅ 購読設定を更新しました",
 		prompt:
 			"📬 どのトピックを購読しますか？\n\n例：/subscribe machine learning\nカテゴリー指定：/subscribe [cs.AI] neural networks",
 		interval: "通知間隔",
 		manage: "管理",
+		addSubscription: "➕ 購読を追加",
+		noSubscriptions: "📭 購読がありません。",
+		useSubscribe: "/subscribe <トピック>で更新を受け取れます。",
 	},
 
 	// Errors
@@ -123,6 +140,8 @@ export const ja: Translations = {
 		back: "⬅️ 戻る",
 		confirm: "✅ 確認",
 		settings: "⚙️ 設定",
+		search: "🔍 検索",
+		searchPapers: "🔍 論文を検索",
 	},
 
 	// Stats
@@ -171,6 +190,27 @@ export const ja: Translations = {
 		myBookmarks: "ブックマーク",
 		history: "履歴",
 		help: "ヘルプ",
+	},
+
+	// Help page
+	helpPage: {
+		title: "📖 ヘルプ＆コマンド",
+		searchCommands: "検索コマンド：",
+		searchTopic: "/search [トピック] - 論文を検索",
+		searchAuthor: "/author [名前] - 著者で検索",
+		browseCategory: "/category - カテゴリーで閲覧",
+		findSimilar: "/similar [arxiv_id] - 類似論文を検索",
+		historyBookmarks: "履歴＆ブックマーク：",
+		viewBookmarks: "/bookmarks - 保存した論文を表示",
+		savePaper: "/save [arxiv_id] - IDまたはURLで論文を保存",
+		viewHistory: "/history - 検索履歴",
+		viewStats: "/stats - 統計情報",
+		exportBibtex: "/export - ブックマークをBibTeXでエクスポート",
+		subscriptionsTitle: "購読：",
+		subscribeTopic: "/subscribe [トピック] - トピックの更新を購読",
+		manageSubscriptions: "/subscriptions - 購読を管理",
+		unsubscribeTopic: "/unsubscribe [id] - 購読を解除",
+		loadMore: "/more - さらに結果を読み込む",
 	},
 };
 
