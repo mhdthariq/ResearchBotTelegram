@@ -1,33 +1,33 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "version": 2,
-  "builds": [
-    {
-      "src": "api/**/*.ts",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/webhook",
-      "dest": "/api/webhook.ts",
-      "methods": ["GET", "POST"]
-    },
-    {
-      "src": "/api/cron/subscriptions",
-      "dest": "/api/cron/subscriptions.ts",
-      "methods": ["GET", "POST"]
-    },
-    {
-      "src": "/api",
-      "dest": "/api/webhook.ts",
-      "methods": ["GET"]
-    }
-  ],
-  "crons": [
-    {
-      "path": "/api/cron/subscriptions",
-      "schedule": "0 9 * * *"
-    }
-  ]
+	"$schema": "https://openapi.vercel.sh/vercel.json",
+	"version": 2,
+	"builds": [
+		{
+			"src": "api/**/*.ts",
+			"use": "@vercel/node"
+		}
+	],
+	"routes": [
+		{
+			"src": "/api/webhook",
+			"dest": "/api/webhook.ts",
+			"methods": ["GET", "POST"]
+		},
+		{
+			"src": "/api/cron/subscriptions",
+			"dest": "/api/cron/subscriptions.ts",
+			"methods": ["GET", "POST"]
+		},
+		{
+			"src": "/api",
+			"dest": "/api/webhook.ts",
+			"methods": ["GET"]
+		}
+	],
+	"crons": [
+		{
+			"path": "/api/cron/subscriptions",
+			"schedule": "0 9 * * *"
+		}
+	]
 }
