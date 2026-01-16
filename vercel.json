@@ -14,9 +14,20 @@
 			"methods": ["GET", "POST"]
 		},
 		{
+			"src": "/api/cron/subscriptions",
+			"dest": "/api/cron/subscriptions.ts",
+			"methods": ["GET", "POST"]
+		},
+		{
 			"src": "/api",
 			"dest": "/api/webhook.ts",
 			"methods": ["GET"]
+		}
+	],
+	"crons": [
+		{
+			"path": "/api/cron/subscriptions",
+			"schedule": "0 */6 * * *"
 		}
 	]
 }

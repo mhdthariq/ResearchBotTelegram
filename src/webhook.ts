@@ -14,6 +14,7 @@
  * - GET /ready      - Readiness probe
  * - GET /live       - Liveness probe
  * - GET /api/export/:token - Download export files (BibTeX/CSV)
+ * - POST /api/subscriptions/trigger - Manually trigger subscription processing
  */
 
 import { Elysia } from "elysia";
@@ -21,12 +22,23 @@ import { bot } from "./bot";
 import { config, isRedisConfigured } from "./config";
 import { isDatabaseHealthy } from "./db/index.js";
 import { checkRedisConnection } from "./storage/redis";
-import { getExport, getExportMimeType } from "./utils/exportStorage.js";
+import {
+	getExport,
+	getExportAsync,
+	getExportMimeType,
+} from "./utils/exportStorage.js";
 import { logger } from "./utils/logger";
 import { collectMetrics, formatPrometheusMetrics } from "./utils/metrics";
+import {
+	getWorkerStatus,
+	processSubscriptions,
+} from "./workers/subscriptionWorker.js";
 
 const PORT = config.PORT;
 const WEBHOOK_SECRET = config.WEBHOOK_SECRET;
+
+// Secret for manual subscription trigger (optional)
+const CRON_SECRET = process.env.CRON_SECRET;
 
 /**
  * Check if the bot API connection is working
@@ -40,9 +52,6 @@ async function checkBotConnection(): Promise<boolean> {
 	}
 }
 
-/**
- * Collect health check results
- */
 /**
  * Check if the database connection is working
  */
@@ -116,8 +125,8 @@ const app = new Elysia()
 		}
 	})
 
-	// Export download endpoint
-	.get("/api/export/:token", ({ params, set }) => {
+	// Export download endpoint (async with Redis support)
+	.get("/api/export/:token", async ({ params, set }) => {
 		const { token } = params;
 
 		if (!token) {
@@ -125,8 +134,11 @@ const app = new Elysia()
 			return { error: "Missing export token" };
 		}
 
-		// Retrieve export data
-		const exportData = getExport(token);
+		// Try async retrieval first (Redis), then fallback to sync (memory)
+		let exportData = await getExportAsync(token);
+		if (!exportData) {
+			exportData = getExport(token);
+		}
 
 		if (!exportData) {
 			logger.warn("Export not found or expired", { token });
@@ -157,6 +169,73 @@ const app = new Elysia()
 
 		// Send the file content
 		return exportData.content;
+	})
+
+	// Manual subscription trigger endpoint
+	.post("/api/subscriptions/trigger", async ({ headers, query, set }) => {
+		// Check authorization
+		const authHeader = headers.authorization;
+
+		if (CRON_SECRET && authHeader !== `Bearer ${CRON_SECRET}`) {
+			logger.warn("Unauthorized subscription trigger attempt");
+			set.status = 401;
+			return { error: "Unauthorized" };
+		}
+
+		logger.info("Manual subscription trigger requested");
+
+		try {
+			// Parse optional configuration from query params
+			const maxSubscriptions = query.max
+				? Number.parseInt(query.max as string, 10)
+				: undefined;
+			const dryRun = query.dryRun === "true";
+
+			// Run the subscription worker
+			const result = await processSubscriptions({
+				maxSubscriptions,
+				dryRun,
+			});
+
+			return {
+				success: true,
+				timestamp: new Date().toISOString(),
+				...result,
+			};
+		} catch (error) {
+			logger.error("Subscription trigger failed", {
+				error: error instanceof Error ? error.message : String(error),
+			});
+			set.status = 500;
+			return {
+				success: false,
+				error: error instanceof Error ? error.message : "Unknown error",
+			};
+		}
+	})
+
+	// Get subscription worker status
+	.get("/api/subscriptions/status", async ({ headers, set }) => {
+		// Check authorization
+		const authHeader = headers.authorization;
+
+		if (CRON_SECRET && authHeader !== `Bearer ${CRON_SECRET}`) {
+			set.status = 401;
+			return { error: "Unauthorized" };
+		}
+
+		try {
+			const status = await getWorkerStatus();
+			return {
+				timestamp: new Date().toISOString(),
+				...status,
+			};
+		} catch (error) {
+			set.status = 500;
+			return {
+				error: error instanceof Error ? error.message : "Unknown error",
+			};
+		}
 	})
 
 	// Simple health check
@@ -245,12 +324,16 @@ logger.info("Elysia webhook server started", {
 	environment: config.NODE_ENV,
 	redisConfigured: isRedisConfigured(),
 	webhookSecretConfigured: !!WEBHOOK_SECRET,
+	cronSecretConfigured: !!CRON_SECRET,
 });
 
 console.log(`🦊 Elysia webhook server running at http://localhost:${PORT}`);
 console.log(`📡 Webhook endpoint: http://localhost:${PORT}/webhook`);
 console.log(`💚 Health check: http://localhost:${PORT}/health`);
 console.log(`📊 Metrics: http://localhost:${PORT}/metrics`);
+console.log(
+	`📬 Subscriptions: http://localhost:${PORT}/api/subscriptions/trigger`,
+);
 
 // Handle graceful shutdown
 process.on("SIGINT", () => {

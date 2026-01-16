@@ -13,9 +13,11 @@ export type {
 	Bookmark,
 	NewAnalyticsEvent,
 	NewBookmark,
+	NewPaperView,
 	NewSearchHistoryEntry,
 	NewSubscription,
 	NewUser,
+	PaperView,
 	SearchHistoryEntry,
 	Subscription,
 	User,
@@ -35,7 +37,19 @@ export {
 	isBookmarked,
 	updateBookmarkNotes,
 } from "./bookmarkRepository.js";
-
+// Paper view repository (read/unread tracking)
+export {
+	clearAllViews,
+	deletePaperView,
+	getRecentViews,
+	getTotalViewCount,
+	getViewCount,
+	getViewedPaperIds,
+	getViewedSince,
+	hasViewedPaper,
+	markPaperAsViewed,
+	markPapersAsViewed,
+} from "./paperViewRepository.js";
 // Search history repository
 export {
 	addSearchToHistory,
@@ -46,7 +60,6 @@ export {
 	getUserSearchCount,
 	getUserSearchHistory,
 } from "./searchHistoryRepository.js";
-
 // Subscription repository
 export {
 	createSubscription,
@@ -65,7 +78,6 @@ export {
 	updateSubscription,
 	updateSubscriptionLastRun,
 } from "./subscriptionRepository.js";
-
 // User repository
 export {
 	deleteUser,

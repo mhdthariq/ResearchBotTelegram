@@ -6,6 +6,7 @@
  * - searchHistory: Track user search queries
  * - bookmarks: Saved papers
  * - subscriptions: Topic subscriptions for notifications
+ * - paperViews: Track which papers users have viewed
  * - analytics: Usage tracking
  */
 
@@ -84,6 +85,26 @@ export const subscriptions = sqliteTable("subscriptions", {
 });
 
 /**
+ * Paper views table - tracks which papers users have seen
+ * Used to filter out already-viewed papers from search and subscription updates
+ */
+export const paperViews = sqliteTable(
+	"paper_views",
+	{
+		id: integer("id").primaryKey({ autoIncrement: true }),
+		userId: integer("user_id")
+			.notNull()
+			.references(() => users.id, { onDelete: "cascade" }),
+		arxivId: text("arxiv_id").notNull(),
+		viewedAt: text("viewed_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+	},
+	(table) => ({
+		// Ensure a user can't view the same paper twice (deduplication)
+		userArxivUnique: unique().on(table.userId, table.arxivId),
+	}),
+);
+
+/**
  * Analytics table - tracks usage events
  */
 export const analytics = sqliteTable("analytics", {
@@ -108,6 +129,9 @@ export type NewBookmark = typeof bookmarks.$inferInsert;
 
 export type Subscription = typeof subscriptions.$inferSelect;
 export type NewSubscription = typeof subscriptions.$inferInsert;
+
+export type PaperView = typeof paperViews.$inferSelect;
+export type NewPaperView = typeof paperViews.$inferInsert;
 
 export type AnalyticsEvent = typeof analytics.$inferSelect;
 export type NewAnalyticsEvent = typeof analytics.$inferInsert;

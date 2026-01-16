@@ -547,3 +547,131 @@ describe("Subscription Repository", () => {
 		expect(deleted).toBe(false);
 	});
 });
+
+describe("Paper View Repository", () => {
+	interface MockPaperView {
+		id: number;
+		userId: number;
+		arxivId: string;
+		viewedAt: string;
+	}
+
+	const mockViews: Map<number, MockPaperView> = new Map();
+	let nextId = 1;
+
+	function markAsViewed(userId: number, arxivId: string): MockPaperView | null {
+		// Check for duplicate
+		for (const view of mockViews.values()) {
+			if (view.userId === userId && view.arxivId === arxivId) {
+				return null; // Already viewed
+			}
+		}
+
+		const view: MockPaperView = {
+			id: nextId++,
+			userId,
+			arxivId,
+			viewedAt: new Date().toISOString(),
+		};
+		mockViews.set(view.id, view);
+		return view;
+	}
+
+	function hasViewed(userId: number, arxivId: string): boolean {
+		for (const view of mockViews.values()) {
+			if (view.userId === userId && view.arxivId === arxivId) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	function getViewedIds(userId: number, arxivIds: string[]): Set<string> {
+		const viewed = new Set<string>();
+		for (const view of mockViews.values()) {
+			if (view.userId === userId && arxivIds.includes(view.arxivId)) {
+				viewed.add(view.arxivId);
+			}
+		}
+		return viewed;
+	}
+
+	function getRecentViews(userId: number, limit = 50): MockPaperView[] {
+		return Array.from(mockViews.values())
+			.filter((v) => v.userId === userId)
+			.sort((a, b) => b.id - a.id)
+			.slice(0, limit);
+	}
+
+	function clearViews(userId: number): number {
+		let count = 0;
+		for (const [id, view] of mockViews) {
+			if (view.userId === userId) {
+				mockViews.delete(id);
+				count++;
+			}
+		}
+		return count;
+	}
+
+	beforeAll(() => {
+		mockViews.clear();
+		nextId = 1;
+	});
+
+	it("should mark paper as viewed", () => {
+		const view = markAsViewed(1, "2301.00001");
+		expect(view).not.toBeNull();
+		expect(view?.userId).toBe(1);
+		expect(view?.arxivId).toBe("2301.00001");
+	});
+
+	it("should not mark duplicate view", () => {
+		const duplicate = markAsViewed(1, "2301.00001");
+		expect(duplicate).toBeNull();
+	});
+
+	it("should check if paper was viewed", () => {
+		expect(hasViewed(1, "2301.00001")).toBe(true);
+		expect(hasViewed(1, "2301.00002")).toBe(false);
+		expect(hasViewed(999, "2301.00001")).toBe(false);
+	});
+
+	it("should get viewed paper IDs from list", () => {
+		markAsViewed(1, "2301.00002");
+		markAsViewed(1, "2301.00003");
+
+		const viewedIds = getViewedIds(1, [
+			"2301.00001",
+			"2301.00002",
+			"2301.00004",
+			"2301.00005",
+		]);
+
+		expect(viewedIds.size).toBe(2);
+		expect(viewedIds.has("2301.00001")).toBe(true);
+		expect(viewedIds.has("2301.00002")).toBe(true);
+		expect(viewedIds.has("2301.00004")).toBe(false);
+	});
+
+	it("should get recent views", () => {
+		const views = getRecentViews(1);
+		expect(views.length).toBe(3);
+		// Most recent first
+		expect(views[0].arxivId).toBe("2301.00003");
+	});
+
+	it("should allow same paper for different users", () => {
+		const view = markAsViewed(2, "2301.00001");
+		expect(view).not.toBeNull();
+		expect(view?.userId).toBe(2);
+	});
+
+	it("should clear all views for user", () => {
+		const cleared = clearViews(1);
+		expect(cleared).toBe(3);
+		expect(hasViewed(1, "2301.00001")).toBe(false);
+		// User 2's view should still exist
+		expect(hasViewed(2, "2301.00001")).toBe(true);
+	});
+});

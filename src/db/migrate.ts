@@ -34,6 +34,7 @@ const migrations = [
 		username TEXT,
 		first_name TEXT,
 		last_name TEXT,
+		language TEXT DEFAULT 'en',
 		results_per_page INTEGER DEFAULT 5,
 		preferred_categories TEXT,
 		created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -90,6 +91,16 @@ const migrations = [
 		FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 	)`,
 
+	// Paper views table (tracks which papers users have seen)
+	`CREATE TABLE IF NOT EXISTS paper_views (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		user_id INTEGER NOT NULL,
+		arxiv_id TEXT NOT NULL,
+		viewed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+		UNIQUE(user_id, arxiv_id)
+	)`,
+
 	// Create indexes for better query performance
 	`CREATE INDEX IF NOT EXISTS idx_users_chat_id ON users(chat_id)`,
 	`CREATE INDEX IF NOT EXISTS idx_search_history_user_id ON search_history(user_id)`,
@@ -101,6 +112,13 @@ const migrations = [
 	`CREATE INDEX IF NOT EXISTS idx_analytics_event_type ON analytics(event_type)`,
 	`CREATE INDEX IF NOT EXISTS idx_analytics_user_id ON analytics(user_id)`,
 	`CREATE INDEX IF NOT EXISTS idx_analytics_created_at ON analytics(created_at)`,
+	`CREATE INDEX IF NOT EXISTS idx_paper_views_user_id ON paper_views(user_id)`,
+	`CREATE INDEX IF NOT EXISTS idx_paper_views_arxiv_id ON paper_views(arxiv_id)`,
+	`CREATE INDEX IF NOT EXISTS idx_paper_views_viewed_at ON paper_views(viewed_at)`,
+
+	// Migration: Add language column to users if it doesn't exist
+	// This handles existing databases that were created before the language feature
+	`ALTER TABLE users ADD COLUMN language TEXT DEFAULT 'en'`,
 ];
 
 // Run migrations
