@@ -356,3 +356,97 @@ export async function exportAllBookmarksToCSV(userId: number): Promise<string> {
 export async function getExportBookmarkCount(userId: number): Promise<number> {
 	return getUserBookmarkCount(userId);
 }
+
+/**
+ * Format BibTeX preview for Telegram message
+ * Shows first few entries as code block
+ *
+ * @param bibtexContent - Full BibTeX content
+ * @param maxEntries - Maximum number of entries to show (default 2)
+ * @returns Formatted preview string
+ */
+export function formatBibTeXPreview(
+	bibtexContent: string,
+	maxEntries = 2,
+): string {
+	if (!bibtexContent) return "";
+
+	// Split by @article entries
+	const entries = bibtexContent.split(/(?=@article\{)/);
+	const validEntries = entries.filter((e) => e.trim().startsWith("@article"));
+
+	if (validEntries.length === 0) return "";
+
+	const previewEntries = validEntries.slice(0, maxEntries);
+	const preview = previewEntries.join("\n\n");
+
+	const moreCount = validEntries.length - maxEntries;
+	const moreText =
+		moreCount > 0 ? `\n\n... and ${moreCount} more entries in file` : "";
+
+	return `\`\`\`\n${preview}\n\`\`\`${moreText}`;
+}
+
+/**
+ * Format CSV as a simple table preview for Telegram
+ * Shows a condensed view of bookmarks
+ *
+ * @param userId - Database user ID
+ * @param maxRows - Maximum number of rows to show (default 5)
+ * @returns Formatted table string
+ */
+export async function formatCSVTablePreview(
+	userId: number,
+	maxRows = 5,
+): Promise<string> {
+	const bookmarks = await getUserBookmarks(userId, { limit: maxRows + 1 });
+
+	if (bookmarks.length === 0) return "";
+
+	const rows: string[] = [];
+
+	// Header
+	rows.push("📊 *Preview:*");
+	rows.push("");
+
+	// Table rows (simplified for Telegram)
+	const displayBookmarks = bookmarks.slice(0, maxRows);
+	for (let i = 0; i < displayBookmarks.length; i++) {
+		const b = displayBookmarks[i];
+		if (!b) continue;
+
+		const arxivId = extractArxivId(b.link) || "N/A";
+		const title =
+			b.title.length > 40 ? `${b.title.substring(0, 37)}...` : b.title;
+		const authors = getBookmarkAuthors(b);
+		const authorStr =
+			authors.length > 0
+				? authors[0]?.split(" ").pop() || "Unknown"
+				: "Unknown";
+
+		rows.push(`${i + 1}. *${arxivId}*`);
+		rows.push(`   ${title}`);
+		rows.push(`   👤 ${authorStr}${authors.length > 1 ? " et al." : ""}`);
+		rows.push("");
+	}
+
+	const moreCount = bookmarks.length > maxRows ? bookmarks.length - maxRows : 0;
+	if (moreCount > 0) {
+		rows.push(`_... and more in the file_`);
+	}
+
+	return rows.join("\n");
+}
+
+/**
+ * Get raw bookmarks data for export
+ * Used for generating file content
+ *
+ * @param userId - Database user ID
+ * @returns Array of bookmarks
+ */
+export async function getBookmarksForExport(
+	userId: number,
+): Promise<Bookmark[]> {
+	return getUserBookmarks(userId, { limit: 1000 });
+}

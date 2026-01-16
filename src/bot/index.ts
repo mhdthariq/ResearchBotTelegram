@@ -17,6 +17,7 @@
  * - Admin commands
  */
 
+import { MediaUpload } from "@gramio/files";
 import { prompt } from "@gramio/prompt";
 import { session } from "@gramio/session";
 import { Bot, bold, format, InlineKeyboard } from "gramio";
@@ -29,7 +30,7 @@ import {
 	searchByCategory,
 } from "../arxiv.js";
 import { initPaperCache } from "../cache/paperCache.js";
-import { config, getPublicUrl, isRedisConfigured } from "../config.js";
+import { config, isRedisConfigured } from "../config.js";
 import { findOrCreateUser } from "../db/repositories/index.js";
 import {
 	getSubscriptionById,
@@ -48,7 +49,9 @@ import {
 	createPaperActionsKeyboard,
 	exportAllBookmarksToBibTeX,
 	exportAllBookmarksToCSV,
+	formatBibTeXPreview,
 	formatBookmarksListMessage,
+	formatCSVTablePreview,
 	getBookmarksPaginated,
 	getExportBookmarkCount,
 	removeBookmark,
@@ -85,11 +88,7 @@ import {
 import { checkRateLimit, getRateLimitInfo } from "../middleware/rateLimit.js";
 import { createRedisStorage } from "../storage/redis.js";
 import { toBibTeX } from "../utils/export.js";
-import {
-	buildExportUrl,
-	getExportExtension,
-	storeExport,
-} from "../utils/exportStorage.js";
+import { getExportExtension } from "../utils/exportStorage.js";
 import { logger } from "../utils/logger.js";
 
 /**
@@ -1489,7 +1488,7 @@ ${paper.summary}
 				return;
 			}
 
-			if (!userId) {
+			if (!userId || !chatId) {
 				await context.message?.send("Please use /export command.");
 				return;
 			}
@@ -1497,14 +1496,17 @@ ${paper.summary}
 			// Generate export content based on format
 			let content: string;
 			let filename: string;
+			let preview: string;
 			const exportFormat = exportType as "bibtex" | "csv";
 
 			if (exportFormat === "bibtex") {
 				content = await exportAllBookmarksToBibTeX(userId);
 				filename = `bookmarks_${Date.now()}${getExportExtension("bibtex")}`;
+				preview = formatBibTeXPreview(content, 2);
 			} else if (exportFormat === "csv") {
 				content = await exportAllBookmarksToCSV(userId);
 				filename = `bookmarks_${Date.now()}${getExportExtension("csv")}`;
+				preview = await formatCSVTablePreview(userId, 5);
 			} else {
 				await context.message?.send("❌ Invalid export format.");
 				return;
@@ -1517,75 +1519,116 @@ ${paper.summary}
 				return;
 			}
 
-			// Check if PUBLIC_URL is configured for download links
-			const publicUrl = getPublicUrl();
+			// Update message to show processing
+			try {
+				await context.message?.editText(
+					`📥 Preparing ${exportFormat === "bibtex" ? "BibTeX" : "CSV"} export...`,
+					{
+						reply_markup: new InlineKeyboard(),
+					},
+				);
+			} catch {
+				// Ignore edit errors
+			}
 
-			if (publicUrl) {
-				// Store export and generate download link
-				const token = storeExport({
-					content,
-					format: exportFormat,
-					filename,
-					userId,
+			try {
+				// Convert content to a file buffer and send as document
+				const fileBuffer = Buffer.from(content, "utf-8");
+				const file = MediaUpload.buffer(fileBuffer, filename);
+
+				// Send the document with preview as caption
+				const captionText =
+					exportFormat === "bibtex"
+						? `📄 BibTeX Export\n\n${preview}`
+						: `📊 CSV Export\n\n${preview}`;
+
+				// Truncate caption if too long (Telegram limit is 1024 chars)
+				const truncatedCaption =
+					captionText.length > 1000
+						? `${captionText.substring(0, 997)}...`
+						: captionText;
+
+				await bot.api.sendDocument({
+					chat_id: chatId,
+					document: file,
+					caption: truncatedCaption,
+					parse_mode: "Markdown",
 				});
 
-				const downloadUrl = buildExportUrl(token, publicUrl);
-
-				const keyboard = new InlineKeyboard()
-					.url("📥 Download File", downloadUrl)
-					.row()
-					.text("📚 View Bookmarks", "action:bookmarks");
-
+				// Update original message to confirm success
 				try {
 					await context.message?.editText(
-						format`✅ ${bold`Export Ready!`}
-
-Format: ${exportFormat === "bibtex" ? "BibTeX" : "CSV"}
-File: ${filename}
-
-Click the button below to download your export.
-
-⏱️ Link expires in 10 minutes.`,
-						{ reply_markup: keyboard },
-					);
-				} catch {
-					await context.message?.send(
-						format`✅ ${bold`Export Ready!`}
-
-Format: ${exportFormat === "bibtex" ? "BibTeX" : "CSV"}
-File: ${filename}
-
-📥 Download: ${downloadUrl}
-
-⏱️ Link expires in 10 minutes.`,
-					);
-				}
-			} else {
-				// Fallback: send as plain text without Markdown if PUBLIC_URL not configured
-				// This avoids Markdown parsing issues with special characters in CSV/BibTeX content
-				const maxLength = 3000;
-				const truncated = content.length > maxLength;
-				const displayContent = truncated
-					? `${content.substring(0, maxLength)}\n\n... (truncated)`
-					: content;
-
-				// Update original message first
-				try {
-					await context.message?.editText(
-						`📥 ${exportFormat === "bibtex" ? "BibTeX" : "CSV"} Export\n\n✅ Your export is ready.${truncated ? "\n\n⚠️ Content truncated. Set PUBLIC_URL env variable to enable full file downloads." : ""}`,
+						`✅ ${exportFormat === "bibtex" ? "BibTeX" : "CSV"} export sent! Check the file above.`,
 						{
-							reply_markup: new InlineKeyboard().text(
-								"📚 View Bookmarks",
-								"action:bookmarks",
-							),
+							reply_markup: new InlineKeyboard()
+								.text("📚 View Bookmarks", "action:bookmarks")
+								.text("🔍 Search", "action:search"),
 						},
 					);
 				} catch {
 					// Ignore edit errors
 				}
 
-				// Send content as plain text (no parse_mode to avoid Markdown issues)
-				await context.message?.send(displayContent);
+				logger.info("Export sent as document", {
+					userId,
+					format: exportFormat,
+					filename,
+					size: fileBuffer.length,
+				});
+			} catch (docError) {
+				logger.error("Failed to send document", {
+					error:
+						docError instanceof Error ? docError.message : String(docError),
+				});
+
+				// Fallback: send preview as message with content as code block for BibTeX
+				// or as plain text for CSV
+				try {
+					if (exportFormat === "bibtex") {
+						// For BibTeX, show as code block
+						const maxLength = 3500;
+						const truncated = content.length > maxLength;
+						const displayContent = truncated
+							? `${content.substring(0, maxLength)}\n\n... (truncated, ${content.length - maxLength} more characters)`
+							: content;
+
+						await context.message?.editText(
+							`📄 ${bold`BibTeX Export`}\n\nCopy the content below:\n\n\`\`\`\n${displayContent}\n\`\`\``,
+							{
+								parse_mode: "Markdown",
+								reply_markup: new InlineKeyboard().text(
+									"📚 View Bookmarks",
+									"action:bookmarks",
+								),
+							},
+						);
+					} else {
+						// For CSV, show table preview and raw content
+						await context.message?.editText(
+							`📊 ${bold`CSV Export`}\n\n${preview}\n\n_Full CSV content sent as text below._`,
+							{
+								parse_mode: "Markdown",
+								reply_markup: new InlineKeyboard().text(
+									"📚 View Bookmarks",
+									"action:bookmarks",
+								),
+							},
+						);
+
+						// Send CSV content as plain text (no markdown to avoid parsing issues)
+						const maxLength = 4000;
+						const truncated = content.length > maxLength;
+						const displayContent = truncated
+							? `${content.substring(0, maxLength)}\n\n... (truncated)`
+							: content;
+						await context.message?.send(displayContent);
+					}
+				} catch {
+					// Last resort fallback
+					await context.message?.send(
+						"❌ Could not send export file. Please try again later.",
+					);
+				}
 			}
 			return;
 		}
