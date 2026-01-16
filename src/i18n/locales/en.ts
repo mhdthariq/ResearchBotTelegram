@@ -46,6 +46,9 @@ export const en: Translations = {
 		newSearch: "🔍 New Search",
 		tip: '💡 Tip: Use specific terms like "transformer attention mechanism" instead of just "AI"',
 		searching: "🔍 Searching for papers...",
+		noMorePapers: "📭 No more papers found for this topic.",
+		useSearchFirst: "Use /search first to search for papers.",
+		loadingMore: '📚 Loading more papers for "{topic}"...',
 	},
 
 	// Papers
@@ -58,6 +61,8 @@ export const en: Translations = {
 		viewPdf: "📄 PDF",
 		viewArxiv: "🔗 arXiv",
 		moreAuthors: "+{count} more",
+		similarPapers: "📚 Similar Papers",
+		noSimilarFound: "No similar papers found.",
 	},
 
 	// Bookmarks
@@ -76,6 +81,9 @@ export const en: Translations = {
 		alreadyBookmarked:
 			"📌 This paper is already in your bookmarks!\n\nUse /bookmarks to view your saved papers.",
 		couldNotLoad: "❌ Could not load your bookmarks. Please try again.",
+		viewBookmarks: "📚 View Bookmarks",
+		saveButton: "☆ Save",
+		savedButton: "⭐ Saved",
 	},
 
 	// History
@@ -109,6 +117,10 @@ export const en: Translations = {
 		addSubscription: "➕ Add Subscription",
 		noSubscriptions: "📭 You don't have any subscriptions.",
 		useSubscribe: "Use /subscribe <topic> to get updates.",
+		settings: "⚙️ Subscription Settings",
+		topic: "📌 Topic",
+		category: "📂 Category",
+		selectToRemove: "Select a subscription to remove:",
 	},
 
 	// Errors
@@ -122,6 +134,12 @@ export const en: Translations = {
 		notFound: "❌ Not found.",
 		unauthorized: "🔒 You don't have permission to perform this action.",
 		tryAgain: "Please try again later.",
+		couldNotProcess: "❌ Could not process request. Please try again.",
+		couldNotFetch: "❌ Could not fetch paper details.",
+		couldNotSave: "❌ Could not save paper. Please try again.",
+		couldNotExport: "❌ Could not export bookmarks. Please try again.",
+		couldNotSend: "❌ Could not send export file. Please try again later.",
+		invalidExportFormat: "❌ Invalid export format.",
 	},
 
 	// Buttons
@@ -138,6 +156,9 @@ export const en: Translations = {
 		settings: "⚙️ Settings",
 		search: "🔍 Search",
 		searchPapers: "🔍 Search Papers",
+		loadMore: "📚 Load More",
+		abstract: "📖 Abstract",
+		pdf: "📄 PDF",
 	},
 
 	// Stats
@@ -153,6 +174,7 @@ export const en: Translations = {
 	categories: {
 		title: "📂 arXiv Categories",
 		select: "Select a category to browse recent papers:",
+		browseByCategory: "📂 Browse by Category",
 	},
 
 	// Time
@@ -207,6 +229,104 @@ export const en: Translations = {
 		manageSubscriptions: "/subscriptions - Manage subscriptions",
 		unsubscribeTopic: "/unsubscribe [id] - Remove subscription",
 		loadMore: "/more - Load more results",
+	},
+
+	// Export
+	export: {
+		title: "📥 Export Bookmarks",
+		cancelled: "Export cancelled.",
+		selectFormat: "Select export format:",
+		generating: "Generating export...",
+		downloadReady: "Your export is ready!",
+		fileCaption: "📚 Your bookmarks ({count} papers)",
+	},
+
+	// Save paper
+	save: {
+		title: "📥 Save Paper to Bookmarks",
+		usage: "To save a paper, provide the arXiv ID or URL:",
+		example: "/save 2301.00001\n/save https://arxiv.org/abs/2301.00001",
+		tip: "You can also save papers directly from search results using the ☆ Save button!",
+		fetching: "🔍 Fetching paper from arXiv...",
+		success: "⭐ Paper saved to bookmarks!",
+	},
+
+	// Author search
+	author: {
+		usage: "Usage: /author <name>",
+		example: "Example: /author Yoshua Bengio",
+		prompt: "🔍 Enter author name to search:",
+		searching: '🔍 Searching for papers by "{name}"...',
+		results: "Papers by {name}",
+		noResults: 'No papers found for author "{name}".',
+	},
+
+	// Similar papers
+	similar: {
+		usage: "Usage: /similar <arxiv_id>",
+		example: "Example: /similar 2301.00001",
+		hint: "You can find the arXiv ID in paper links (e.g., arxiv.org/abs/2301.00001)",
+		searching: "🔍 Finding similar papers...",
+		notFound: '❌ Could not find paper with ID "{arxivId}".',
+		noResults: "No similar papers found.",
+		title: "📚 Similar Papers",
+	},
+
+	// Callback messages
+	callbacks: {
+		tooManyRequests: "Too many requests. Please wait.",
+		pleaseStartFirst: "Please start the bot first with /start",
+		userNotFound: "User not found. Please try /start first.",
+		subscriptionNotFound: "Subscription not found.",
+		couldNotFetchPaper: "Could not fetch paper details.",
+		clearBookmarksHint: "To clear all bookmarks, use a dedicated command.",
+		intervalUpdated: "✅ Interval updated to every {hours} hours.",
+	},
+
+	// Category browsing
+	categoryBrowse: {
+		loading: "🔍 Loading recent papers in {category}...",
+		noResults: "No papers found in category {category}.",
+	},
+
+	// Inline query
+	inlineQuery: {
+		typeToSearch: "Type at least 3 characters to search",
+		searchDescription: "Search for research papers on arXiv",
+		helpMessage:
+			"🔍 Use this bot to search for research papers on arXiv!\n\nJust type @YourBotName followed by your search query.",
+		noResults: 'No papers found for "{query}"',
+		tryDifferent: "Try a different search term",
+		searchFailed: "Search failed",
+		tryAgain: "An error occurred. Please try again.",
+	},
+
+	// General UI
+	ui: {
+		errorOccurred: "❌ An error occurred. Please try again later.",
+		paperCount: "You have {count} bookmarked paper(s).",
+		yourSubscriptions: "📬 Your Subscriptions",
+		tapToManage: "Tap a topic to manage or remove it.",
+		settingsHeader: "⚙️ Subscription Settings",
+		intervalLabel: "⏱️ Interval",
+		categoryLabel: "📂 Category",
+		selectFrequency: '⏱️ Select update frequency for "{topic}":',
+		exportPreparing: "📥 Preparing {format} export...",
+		exportSuccess: "✅ {format} export sent! Check the file above.",
+		bibtexFormat: "BibTeX",
+		csvFormat: "CSV",
+		forLatex: "For LaTeX and citation managers",
+		forSpreadsheets: "For spreadsheets (Excel, Google Sheets)",
+		cancelButton: "❌ Cancel",
+		viewBookmarksButton: "📚 View Bookmarks",
+	},
+
+	// Validation
+	validation: {
+		invalidArxivId: "❌ Invalid arXiv ID or URL.",
+		validFormats: "Valid formats:",
+		alreadyBookmarked: "📌 This paper is already in your bookmarks!",
+		useBookmarksToView: "Use /bookmarks to view your saved papers.",
 	},
 };
 

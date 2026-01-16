@@ -43,6 +43,9 @@ export const fr: Translations = {
 		newSearch: "🔍 Nouvelle Recherche",
 		tip: "💡 Conseil : Utilisez des termes spécifiques comme « transformer attention mechanism » au lieu de simplement « AI »",
 		searching: "🔍 Recherche d'articles en cours...",
+		noMorePapers: "📭 Plus d'articles trouvés pour ce sujet.",
+		useSearchFirst: "Utilisez d'abord /search pour rechercher des articles.",
+		loadingMore: '📚 Chargement d\'autres articles pour "{topic}"...',
 	},
 
 	// Papers
@@ -55,6 +58,8 @@ export const fr: Translations = {
 		viewPdf: "📄 PDF",
 		viewArxiv: "🔗 arXiv",
 		moreAuthors: "+{count} de plus",
+		similarPapers: "📚 Articles Similaires",
+		noSimilarFound: "Aucun article similaire trouvé.",
 	},
 
 	// Bookmarks
@@ -74,6 +79,9 @@ export const fr: Translations = {
 		alreadyBookmarked:
 			"📌 Cet article est déjà dans vos favoris !\n\nUtilisez /bookmarks pour voir vos articles sauvegardés.",
 		couldNotLoad: "❌ Impossible de charger vos favoris. Veuillez réessayer.",
+		viewBookmarks: "📚 Voir les Favoris",
+		saveButton: "☆ Sauvegarder",
+		savedButton: "⭐ Sauvegardé",
 	},
 
 	// History
@@ -109,6 +117,10 @@ export const fr: Translations = {
 		addSubscription: "➕ Ajouter un Abonnement",
 		noSubscriptions: "📭 Vous n'avez aucun abonnement.",
 		useSubscribe: "Utilisez /subscribe <sujet> pour recevoir des mises à jour.",
+		settings: "⚙️ Paramètres d'Abonnement",
+		topic: "📌 Sujet",
+		category: "📂 Catégorie",
+		selectToRemove: "Sélectionnez un abonnement à supprimer :",
 	},
 
 	// Errors
@@ -124,6 +136,13 @@ export const fr: Translations = {
 		notFound: "❌ Non trouvé.",
 		unauthorized: "🔒 Vous n'avez pas la permission d'effectuer cette action.",
 		tryAgain: "Veuillez réessayer plus tard.",
+		couldNotProcess: "❌ Impossible de traiter la demande. Veuillez réessayer.",
+		couldNotFetch: "❌ Impossible de récupérer les détails de l'article.",
+		couldNotSave: "❌ Impossible de sauvegarder l'article. Veuillez réessayer.",
+		couldNotExport: "❌ Impossible d'exporter les favoris. Veuillez réessayer.",
+		couldNotSend:
+			"❌ Impossible d'envoyer le fichier d'export. Veuillez réessayer plus tard.",
+		invalidExportFormat: "❌ Format d'export invalide.",
 	},
 
 	// Buttons
@@ -140,6 +159,9 @@ export const fr: Translations = {
 		settings: "⚙️ Paramètres",
 		search: "🔍 Rechercher",
 		searchPapers: "🔍 Rechercher des Articles",
+		loadMore: "📚 Charger Plus",
+		abstract: "📖 Résumé",
+		pdf: "📄 PDF",
 	},
 
 	// Stats
@@ -155,6 +177,7 @@ export const fr: Translations = {
 	categories: {
 		title: "📂 Catégories arXiv",
 		select: "Sélectionnez une catégorie pour parcourir les articles récents :",
+		browseByCategory: "📂 Parcourir par Catégorie",
 	},
 
 	// Time
@@ -213,6 +236,108 @@ export const fr: Translations = {
 		manageSubscriptions: "/subscriptions - Gérer les abonnements",
 		unsubscribeTopic: "/unsubscribe [id] - Supprimer un abonnement",
 		loadMore: "/more - Charger plus de résultats",
+	},
+
+	// Export
+	export: {
+		title: "📥 Exporter les Favoris",
+		cancelled: "Export annulé.",
+		selectFormat: "Sélectionnez le format d'export :",
+		generating: "Génération de l'export...",
+		downloadReady: "Votre export est prêt !",
+		fileCaption: "📚 Vos favoris ({count} articles)",
+	},
+
+	// Save paper
+	save: {
+		title: "📥 Sauvegarder un Article",
+		usage: "Pour sauvegarder un article, fournissez l'ID arXiv ou l'URL :",
+		example: "/save 2301.00001\n/save https://arxiv.org/abs/2301.00001",
+		tip: "Vous pouvez aussi sauvegarder des articles directement depuis les résultats de recherche avec le bouton ☆ Sauvegarder !",
+		fetching: "🔍 Récupération de l'article depuis arXiv...",
+		success: "⭐ Article sauvegardé dans les favoris !",
+	},
+
+	// Author search
+	author: {
+		usage: "Utilisation : /author <nom>",
+		example: "Exemple : /author Yoshua Bengio",
+		prompt: "🔍 Entrez le nom de l'auteur à rechercher :",
+		searching: '🔍 Recherche d\'articles de "{name}"...',
+		results: "Articles de {name}",
+		noResults: 'Aucun article trouvé pour l\'auteur "{name}".',
+	},
+
+	// Similar papers
+	similar: {
+		usage: "Utilisation : /similar <arxiv_id>",
+		example: "Exemple : /similar 2301.00001",
+		hint: "Vous pouvez trouver l'ID arXiv dans les liens d'articles (ex. arxiv.org/abs/2301.00001)",
+		searching: "🔍 Recherche d'articles similaires...",
+		notFound: "❌ Impossible de trouver l'article avec l'ID \"{arxivId}\".",
+		noResults: "Aucun article similaire trouvé.",
+		title: "📚 Articles Similaires",
+	},
+
+	// Callback messages
+	callbacks: {
+		tooManyRequests: "Trop de requêtes. Veuillez patienter.",
+		pleaseStartFirst: "Veuillez d'abord démarrer le bot avec /start",
+		userNotFound: "Utilisateur non trouvé. Veuillez essayer /start d'abord.",
+		subscriptionNotFound: "Abonnement non trouvé.",
+		couldNotFetchPaper: "Impossible de récupérer les détails de l'article.",
+		clearBookmarksHint:
+			"Pour supprimer tous les favoris, utilisez une commande dédiée.",
+		intervalUpdated: "✅ Intervalle mis à jour à toutes les {hours} heures.",
+	},
+
+	// Category browsing
+	categoryBrowse: {
+		loading: "🔍 Chargement des articles récents dans {category}...",
+		noResults: "Aucun article trouvé dans la catégorie {category}.",
+	},
+
+	// Inline query
+	inlineQuery: {
+		typeToSearch: "Tapez au moins 3 caractères pour rechercher",
+		searchDescription: "Rechercher des articles de recherche sur arXiv",
+		helpMessage:
+			"🔍 Utilisez ce bot pour rechercher des articles sur arXiv !\n\nTapez simplement @NomDuBot suivi de votre requête.",
+		noResults: 'Aucun article trouvé pour "{query}"',
+		tryDifferent: "Essayez un terme de recherche différent",
+		searchFailed: "Échec de la recherche",
+		tryAgain: "Une erreur s'est produite. Veuillez réessayer.",
+	},
+
+	// General UI
+	ui: {
+		errorOccurred:
+			"❌ Une erreur s'est produite. Veuillez réessayer plus tard.",
+		paperCount: "Vous avez {count} article(s) sauvegardé(s).",
+		yourSubscriptions: "📬 Vos Abonnements",
+		tapToManage: "Appuyez sur un sujet pour le gérer ou le supprimer.",
+		settingsHeader: "⚙️ Paramètres d'Abonnement",
+		intervalLabel: "⏱️ Intervalle",
+		categoryLabel: "📂 Catégorie",
+		selectFrequency:
+			'⏱️ Sélectionnez la fréquence de mise à jour pour "{topic}" :',
+		exportPreparing: "📥 Préparation de l'export {format}...",
+		exportSuccess: "✅ Export {format} envoyé ! Vérifiez le fichier ci-dessus.",
+		bibtexFormat: "BibTeX",
+		csvFormat: "CSV",
+		forLatex: "Pour LaTeX et gestionnaires de citations",
+		forSpreadsheets: "Pour tableurs (Excel, Google Sheets)",
+		cancelButton: "❌ Annuler",
+		viewBookmarksButton: "📚 Voir les Favoris",
+	},
+
+	// Validation
+	validation: {
+		invalidArxivId: "❌ ID arXiv ou URL invalide.",
+		validFormats: "Formats valides :",
+		alreadyBookmarked: "📌 Cet article est déjà dans vos favoris !",
+		useBookmarksToView:
+			"Utilisez /bookmarks pour voir vos articles sauvegardés.",
 	},
 };
 

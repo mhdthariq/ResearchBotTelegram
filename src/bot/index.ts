@@ -100,26 +100,8 @@ interface SessionData {
 	userId?: number; // Database user ID
 }
 
-/**
- * User-friendly error messages
- */
-const MESSAGES = {
-	NO_RESULTS:
-		"🔍 No papers found for your query. Try:\n• Different keywords\n• Broader search terms\n• Check spelling",
-	API_ERROR: "⚠️ Couldn't reach arXiv. Please try again in a moment.",
-	SEARCH_TIP:
-		'💡 Tip: Use specific terms like "transformer attention mechanism" instead of just "AI"',
-	SEARCH_CANCELLED: "Search cancelled.",
-	USE_SEARCH_FIRST: "Use /search first to search for papers.",
-	NO_MORE_PAPERS: "📭 No more papers found for this topic.",
-	RATE_LIMITED:
-		"⏳ You're sending too many requests. Please wait a moment before trying again.",
-	BOOKMARK_ADDED: "⭐ Paper saved to bookmarks!",
-	BOOKMARK_REMOVED: "✅ Paper removed from bookmarks.",
-	BOOKMARK_EXISTS: "📚 Paper is already in your bookmarks.",
-	NO_BOOKMARKS: "📚 You don't have any bookmarks yet.",
-	HISTORY_CLEARED: "🗑️ Search history cleared!",
-};
+// Messages are now handled via i18n translations
+// Use t(lang, "key") to get translated messages
 
 /**
  * Initialize caching if Redis is configured
@@ -190,7 +172,7 @@ function formatPapersMessage(papers: Paper[], startIndex = 0): string {
 function formatRateLimitMessage(chatId: number): string {
 	const info = getRateLimitInfo(chatId);
 	const resetInSeconds = Math.ceil((info.resetAt - Date.now()) / 1000);
-	return `${MESSAGES.RATE_LIMITED}\n\n⏱️ Try again in ${resetInSeconds} seconds.`;
+	return `⏳ You're sending too many requests. Please wait a moment before trying again.\n\n⏱️ Try again in ${resetInSeconds} seconds.`;
 }
 
 /**
@@ -275,7 +257,7 @@ export const bot = new Bot(config.BOT_TOKEN)
 		// Try to notify the user if this is a message context
 		if ("send" in context && typeof context.send === "function") {
 			(context.send as (text: string) => Promise<unknown>)(
-				"❌ An error occurred. Please try again later.",
+				t("en", "ui.errorOccurred"),
 			).catch(() => {
 				// Ignore send errors
 			});
@@ -362,7 +344,7 @@ export const bot = new Bot(config.BOT_TOKEN)
 			}
 			keyboard.row();
 		}
-		keyboard.text("⬅️ Back", "action:back_to_start");
+		keyboard.text(t(userLang, "buttons.back"), "action:back_to_start");
 
 		return context.send(
 			format`
@@ -441,8 +423,8 @@ ${t(userLang, "search.tip")}
 			});
 		}
 
-		const message = format`${bold`${t(userLang, "bookmarks.title")}`} (${t(userLang, "bookmarks.total", { count: String(total) })})\n\n${formatBookmarksListMessage(bookmarks)}`;
-		const keyboard = createBookmarksKeyboard(1, hasMore, total);
+		const message = format`${bold`${t(userLang, "bookmarks.title")}`} (${t(userLang, "bookmarks.total", { count: String(total) })})\n\n${formatBookmarksListMessage(bookmarks, 0, userLang)}`;
+		const keyboard = createBookmarksKeyboard(1, hasMore, total, userLang);
 
 		return context.send(message, { reply_markup: keyboard });
 	})
@@ -453,9 +435,10 @@ ${t(userLang, "search.tip")}
 			return context.send(formatRateLimitMessage(context.chatId));
 		}
 
+		const userLang = await getUserLanguage(context.chatId);
 		const userId = await ensureUser(context.chatId, context.research_session);
 		if (!userId) {
-			return context.send("❌ Could not save paper. Please try again.");
+			return context.send(t(userLang, "errors.couldNotSave"));
 		}
 
 		// Get the arXiv ID or URL from command argument
@@ -463,15 +446,14 @@ ${t(userLang, "search.tip")}
 
 		if (!args) {
 			return context.send(
-				format`${bold`📥 Save Paper to Bookmarks`}
+				format`${bold`${t(userLang, "save.title")}`}
 
-To save a paper, provide the arXiv ID or URL:
+${t(userLang, "save.usage")}
 
 ${bold`Usage:`}
-/save 2301.00001
-/save https://arxiv.org/abs/2301.00001
+${t(userLang, "save.example")}
 
-${bold`Tip:`} You can also save papers directly from search results using the ☆ Save button!`,
+${bold`Tip:`} ${t(userLang, "save.tip")}`,
 			);
 		}
 
@@ -494,9 +476,9 @@ ${bold`Tip:`} You can also save papers directly from search results using the �
 
 		if (!arxivId) {
 			return context.send(
-				format`❌ Invalid arXiv ID or URL.
+				format`${t(userLang, "validation.invalidArxivId")}
 
-${bold`Valid formats:`}
+${bold`${t(userLang, "validation.validFormats")}`}
 • 2301.00001
 • arxiv:2301.00001
 • https://arxiv.org/abs/2301.00001
@@ -508,14 +490,14 @@ ${bold`Valid formats:`}
 		const alreadyBookmarked = await checkBookmarked(userId, arxivId);
 		if (alreadyBookmarked) {
 			return context.send(
-				format`📌 This paper is already in your bookmarks!
+				format`${t(userLang, "validation.alreadyBookmarked")}
 
-Use /bookmarks to view your saved papers.`,
+${t(userLang, "validation.useBookmarksToView")}`,
 			);
 		}
 
 		// Fetch the paper from arXiv
-		await context.send("🔍 Fetching paper from arXiv...");
+		context.send(t(userLang, "save.fetching"));
 
 		const paper = await fetchPaperById(arxivId);
 
@@ -529,9 +511,8 @@ Please check the ID and try again. The paper might have been removed or the ID m
 
 		// Add to bookmarks
 		const bookmark = await addBookmark(userId, paper);
-
 		if (!bookmark) {
-			return context.send("❌ Failed to save paper. Please try again.");
+			return context.send(t(userLang, "errors.couldNotSave"));
 		}
 
 		// Format authors
@@ -544,7 +525,7 @@ Please check the ID and try again. The paper might have been removed or the ID m
 					: "Unknown";
 
 		const keyboard = new InlineKeyboard()
-			.text("📚 View Bookmarks", "action:bookmarks")
+			.text(t(userLang, "bookmarks.viewBookmarks"), "action:bookmarks")
 			.text("🔍 Search More", "action:search");
 
 		return context.send(
@@ -586,7 +567,7 @@ ${bold`${paper.title}`}
 			);
 		}
 
-		const keyboard = createRecentSearchesKeyboard(recentSearches, 6);
+		const keyboard = createRecentSearchesKeyboard(recentSearches, 6, userLang);
 
 		return context.send(
 			format`${bold`${t(userLang, "history.recentSearches")}`}\n\n${t(userLang, "history.tapToSearch")}`,
@@ -599,9 +580,10 @@ ${bold`${paper.title}`}
 			return context.send(formatRateLimitMessage(context.chatId));
 		}
 
+		const userLang = await getUserLanguage(context.chatId);
 		const userId = await ensureUser(context.chatId, context.research_session);
 		if (!userId) {
-			return context.send("❌ Could not load your stats. Please try again.");
+			return context.send(t(userLang, "errors.couldNotProcess"));
 		}
 
 		const searchStats = await getSearchStats(userId);
@@ -627,12 +609,13 @@ ${bold`${paper.title}`}
 			return context.send(formatRateLimitMessage(context.chatId));
 		}
 
+		const userLang = await getUserLanguage(context.chatId);
 		let authorName = context.args ?? "";
 
 		if (!authorName) {
 			const answer = await context.prompt(
 				"message",
-				"👤 Enter the author name to search for:",
+				t(userLang, "author.prompt"),
 			);
 			authorName = answer.text || "";
 		}
@@ -640,22 +623,24 @@ ${bold`${paper.title}`}
 		authorName = authorName.trim();
 		if (!authorName) {
 			return context.send(
-				"Usage: /author <name>\nExample: /author Yoshua Bengio",
+				`${t(userLang, "author.usage")}\n${t(userLang, "author.example")}`,
 			);
 		}
 
-		await context.send(`🔍 Searching for papers by "${authorName}"...`);
+		await context.send(t(userLang, "author.searching", { name: authorName }));
 
 		const papers = await searchByAuthor(authorName, 5);
 
 		if (!papers.length) {
-			return context.send(`No papers found for author "${authorName}".`);
+			return context.send(
+				t(userLang, "author.noResults", { name: authorName }),
+			);
 		}
 
-		const message = format`${bold`Papers by ${authorName}`}\n\n${formatPapersMessage(papers)}`;
+		const message = format`${bold`${t(userLang, "author.results", { name: authorName })}`}\n\n${formatPapersMessage(papers)}`;
 
 		const keyboard = new InlineKeyboard().text(
-			"🔍 New Search",
+			t(userLang, "search.newSearch"),
 			"action:search",
 		);
 
@@ -686,8 +671,9 @@ ${bold`${paper.title}`}
 			keyboard.row();
 		}
 
+		const userLang = await getUserLanguage(context.chatId);
 		return context.send(
-			format`${bold`📂 Browse by Category`}\n\nSelect a category to see recent papers:`,
+			format`${bold`${t(userLang, "categories.browseByCategory")}`}\n\n${t(userLang, "categories.select")}`,
 			{ reply_markup: keyboard },
 		);
 	})
@@ -697,34 +683,35 @@ ${bold`${paper.title}`}
 			return context.send(formatRateLimitMessage(context.chatId));
 		}
 
+		const userLang = await getUserLanguage(context.chatId);
 		const userId = await ensureUser(context.chatId, context.research_session);
 		if (!userId) {
-			return context.send("❌ Could not export bookmarks. Please try again.");
+			return context.send(t(userLang, "errors.couldNotExport"));
 		}
 
 		// Check if user has bookmarks
 		const bookmarkCount = await getExportBookmarkCount(userId);
 
 		if (bookmarkCount === 0) {
-			return context.send("📚 No bookmarks to export. Save some papers first!");
+			return context.send(t(userLang, "bookmarks.exportEmpty"));
 		}
 
 		// Show format selection keyboard
 		const keyboard = new InlineKeyboard()
-			.text("📄 BibTeX (.bib)", "export:bibtex")
-			.text("📊 CSV (.csv)", "export:csv")
+			.text(`📄 ${t(userLang, "ui.bibtexFormat")} (.bib)`, "export:bibtex")
+			.text(`📊 ${t(userLang, "ui.csvFormat")} (.csv)`, "export:csv")
 			.row()
-			.text("❌ Cancel", "export:cancel");
+			.text(t(userLang, "ui.cancelButton"), "export:cancel");
 
 		return context.send(
-			format`${bold`📥 Export Bookmarks`}
+			format`${bold`${t(userLang, "export.title")}`}
 
-You have ${bookmarkCount} bookmarked paper${bookmarkCount > 1 ? "s" : ""}.
+${t(userLang, "ui.paperCount", { count: String(bookmarkCount) })}
 
-Select the export format:
+${t(userLang, "export.selectFormat")}
 
-${bold`BibTeX`} - For LaTeX and citation managers
-${bold`CSV`} - For spreadsheets (Excel, Google Sheets)`,
+${bold`${t(userLang, "ui.bibtexFormat")}`} - ${t(userLang, "ui.forLatex")}
+${bold`${t(userLang, "ui.csvFormat")}`} - ${t(userLang, "ui.forSpreadsheets")}`,
 			{ reply_markup: keyboard },
 		);
 	})
@@ -739,7 +726,7 @@ ${bold`CSV`} - For spreadsheets (Excel, Google Sheets)`,
 		const chatId = context.message?.chat?.id;
 		if (chatId && !checkRateLimit(chatId)) {
 			await context.answer({
-				text: "Too many requests. Please wait.",
+				text: t("en", "callbacks.tooManyRequests"),
 				show_alert: true,
 			});
 			return;
@@ -753,29 +740,32 @@ ${bold`CSV`} - For spreadsheets (Excel, Google Sheets)`,
 			const action = data.replace("action:", "");
 
 			switch (action) {
-				case "search":
+				case "search": {
 					await context.answer();
-					await context.message?.send(
-						"🔍 What topic would you like to search for?\n\nType your search query or use:\n/search [topic]",
-					);
+					const user = chatId ? await findUserByChatId(chatId) : null;
+					const userLang = (user?.language as LanguageCode) || "en";
+					await context.message?.send(t(userLang, "search.prompt"));
 					break;
+				}
 
 				case "more": {
 					await context.answer();
 					const topic = context.research_session?.lastTopic;
+					const user = chatId ? await findUserByChatId(chatId) : null;
+					const userLang = (user?.language as LanguageCode) || "en";
 					if (!topic) {
-						await context.message?.send(MESSAGES.USE_SEARCH_FIRST);
+						await context.message?.send(t(userLang, "search.useSearchFirst"));
 					} else {
 						const nextOffset = (context.research_session?.lastOffset || 0) + 5;
 						context.research_session.lastOffset = nextOffset;
 
 						await context.message?.send(
-							`📚 Loading more papers for "${topic}"...`,
+							t(userLang, "search.loadingMore", { topic }),
 						);
 
 						const papers = await fetchPapers(topic, nextOffset);
 						if (!papers.length) {
-							await context.message?.send(MESSAGES.NO_MORE_PAPERS);
+							await context.message?.send(t(userLang, "search.noMorePapers"));
 						} else {
 							const message = formatPapersMessage(papers, nextOffset);
 							await context.message?.send(message);
@@ -786,8 +776,10 @@ ${bold`CSV`} - For spreadsheets (Excel, Google Sheets)`,
 
 				case "bookmarks": {
 					await context.answer();
+					const user = chatId ? await findUserByChatId(chatId) : null;
+					const userLang = (user?.language as LanguageCode) || "en";
 					if (!userId) {
-						await context.message?.send("Please use /bookmarks command.");
+						await context.message?.send(t(userLang, "commands.bookmarks"));
 						return;
 					}
 					// Redirect to bookmarks command logic
@@ -797,11 +789,16 @@ ${bold`CSV`} - For spreadsheets (Excel, Google Sheets)`,
 						5,
 					);
 					if (bookmarks.length === 0) {
-						await context.message?.send(MESSAGES.NO_BOOKMARKS);
+						await context.message?.send(t(userLang, "bookmarks.empty"));
 					} else {
-						const msg = format`${bold`📚 Your Bookmarks`} (${total} total)\n\n${formatBookmarksListMessage(bookmarks)}`;
+						const msg = format`${bold`${t(userLang, "bookmarks.title")}`} (${t(userLang, "bookmarks.total", { count: String(total) })})\n\n${formatBookmarksListMessage(bookmarks, 0, userLang)}`;
 						await context.message?.send(msg, {
-							reply_markup: createBookmarksKeyboard(1, hasMore, total),
+							reply_markup: createBookmarksKeyboard(
+								1,
+								hasMore,
+								total,
+								userLang,
+							),
 						});
 					}
 					break;
@@ -809,39 +806,50 @@ ${bold`CSV`} - For spreadsheets (Excel, Google Sheets)`,
 
 				case "history": {
 					await context.answer();
+					const user = chatId ? await findUserByChatId(chatId) : null;
+					const userLang = (user?.language as LanguageCode) || "en";
 					if (!userId) {
-						await context.message?.send("Please use /history command.");
+						await context.message?.send(t(userLang, "commands.history"));
 						return;
 					}
 					const recentSearches = await getRecentSearches(userId, 6);
 					if (recentSearches.length === 0) {
-						await context.message?.send("📜 No search history yet.");
+						await context.message?.send(t(userLang, "history.noHistory"));
 					} else {
 						await context.message?.send(
-							format`${bold`🕐 Recent Searches`}\n\nTap a search to run it again:`,
-							{ reply_markup: createRecentSearchesKeyboard(recentSearches, 6) },
+							format`${bold`${t(userLang, "history.recentSearches")}`}\n\n${t(userLang, "history.tapToSearch")}`,
+							{
+								reply_markup: createRecentSearchesKeyboard(
+									recentSearches,
+									6,
+									userLang,
+								),
+							},
 						);
 					}
 					break;
 				}
 
-				case "help":
+				case "help": {
 					await context.answer();
+					const user = chatId ? await findUserByChatId(chatId) : null;
+					const userLang = (user?.language as LanguageCode) || "en";
 					await context.message?.send(
 						format`
-${bold`📖 Help & Commands`}
+${bold`${t(userLang, "helpPage.title")}`}
 
-${bold`/search [topic]`} - Search for papers
-${bold`/author [name]`} - Search by author
-${bold`/bookmarks`} - View saved papers
-${bold`/save [arxiv_id]`} - Save a paper by ID or URL
-${bold`/history`} - Search history
-${bold`/more`} - Load more results
+${bold`${t(userLang, "helpPage.searchTopic")}`}
+${bold`${t(userLang, "helpPage.searchAuthor")}`}
+${bold`${t(userLang, "helpPage.viewBookmarks")}`}
+${bold`${t(userLang, "helpPage.savePaper")}`}
+${bold`${t(userLang, "helpPage.viewHistory")}`}
+${bold`${t(userLang, "helpPage.loadMore")}`}
 
-${MESSAGES.SEARCH_TIP}
+${t(userLang, "search.tip")}
           `,
 					);
 					break;
+				}
 
 				case "language": {
 					await context.answer();
@@ -884,7 +892,10 @@ ${MESSAGES.SEARCH_TIP}
 						}
 						langKeyboard.row();
 					}
-					langKeyboard.text("⬅️ Back", "action:back_to_start");
+					langKeyboard.text(
+						t(userLang, "buttons.back"),
+						"action:back_to_start",
+					);
 
 					await context.message?.editText(
 						format`
@@ -924,7 +935,7 @@ ${t(userLang, "language.select")}
 
 			if (!userId || !chatId) {
 				await context.answer({
-					text: "Please start the bot first with /start",
+					text: t("en", "callbacks.pleaseStartFirst"),
 					show_alert: true,
 				});
 				return;
@@ -934,7 +945,7 @@ ${t(userLang, "language.select")}
 			const user = await findUserByChatId(chatId);
 			if (!user) {
 				await context.answer({
-					text: "User not found. Please try /start first.",
+					text: t("en", "callbacks.userNotFound"),
 					show_alert: true,
 				});
 				return;
@@ -970,7 +981,7 @@ ${t(userLang, "language.select")}
 
 			if (!userId) {
 				await context.answer({
-					text: "Please start the bot first with /start",
+					text: t("en", "callbacks.pleaseStartFirst"),
 					show_alert: true,
 				});
 				return;
@@ -979,23 +990,25 @@ ${t(userLang, "language.select")}
 			const paper = await fetchPaperById(arxivId);
 			if (!paper) {
 				await context.answer({
-					text: "Could not fetch paper details.",
+					text: t("en", "callbacks.couldNotFetchPaper"),
 					show_alert: true,
 				});
 				return;
 			}
 
+			const user = chatId ? await findUserByChatId(chatId) : null;
+			const userLang = (user?.language as LanguageCode) || "en";
 			const bookmark = await addBookmark(userId, paper);
 			if (bookmark) {
 				await context.answer({
-					text: MESSAGES.BOOKMARK_ADDED,
+					text: t(userLang, "bookmarks.added"),
 					show_alert: true,
 				});
 				// Update keyboard to show bookmarked state
 				// Note: editReplyMarkup has typing issues, skip for now
 			} else {
 				await context.answer({
-					text: MESSAGES.BOOKMARK_EXISTS,
+					text: t(userLang, "bookmarks.exists"),
 					show_alert: true,
 				});
 			}
@@ -1010,10 +1023,12 @@ ${t(userLang, "language.select")}
 				return;
 			}
 
+			const user = chatId ? await findUserByChatId(chatId) : null;
+			const userLang = (user?.language as LanguageCode) || "en";
 			const removed = await removeBookmark(userId, arxivId);
 			if (removed) {
 				await context.answer({
-					text: MESSAGES.BOOKMARK_REMOVED,
+					text: t(userLang, "bookmarks.removed"),
 					show_alert: true,
 				});
 				// Note: editReplyMarkup has typing issues, skip for now
@@ -1028,16 +1043,18 @@ ${t(userLang, "language.select")}
 
 			if (!userId || Number.isNaN(page)) return;
 
+			const user = chatId ? await findUserByChatId(chatId) : null;
+			const userLang = (user?.language as LanguageCode) || "en";
 			const { bookmarks, total, hasMore } = await getBookmarksPaginated(
 				userId,
 				page,
 				5,
 			);
-			const message = format`${bold`📚 Your Bookmarks`} (${total} total)\n\n${formatBookmarksListMessage(bookmarks, (page - 1) * 5)}`;
+			const message = format`${bold`${t(userLang, "bookmarks.title")}`} (${t(userLang, "bookmarks.total", { count: String(total) })})\n\n${formatBookmarksListMessage(bookmarks, (page - 1) * 5, userLang)}`;
 
 			try {
 				await context.message?.editText(message, {
-					reply_markup: createBookmarksKeyboard(page, hasMore, total),
+					reply_markup: createBookmarksKeyboard(page, hasMore, total, userLang),
 				});
 			} catch {
 				// Ignore edit errors
@@ -1047,7 +1064,7 @@ ${t(userLang, "language.select")}
 
 		if (data === "bookmarks:clear") {
 			await context.answer({
-				text: "To clear all bookmarks, use a dedicated command.",
+				text: t("en", "callbacks.clearBookmarksHint"),
 				show_alert: true,
 			});
 			return;
@@ -1060,16 +1077,18 @@ ${t(userLang, "language.select")}
 
 			if (!userId || Number.isNaN(page)) return;
 
+			const user = chatId ? await findUserByChatId(chatId) : null;
+			const userLang = (user?.language as LanguageCode) || "en";
 			const { history, hasMore } = await getSearchHistoryPaginated(
 				userId,
 				page,
 				10,
 			);
-			const message = formatHistoryMessage(history, (page - 1) * 10);
+			const message = formatHistoryMessage(history, (page - 1) * 10, userLang);
 
 			try {
 				await context.message?.editText(message, {
-					reply_markup: createHistoryKeyboard(page, hasMore),
+					reply_markup: createHistoryKeyboard(page, hasMore, userLang),
 				});
 			} catch {
 				// Ignore edit errors
@@ -1081,15 +1100,17 @@ ${t(userLang, "language.select")}
 			await context.answer();
 			if (!userId) return;
 
+			const user = chatId ? await findUserByChatId(chatId) : null;
+			const userLang = (user?.language as LanguageCode) || "en";
 			const { history, hasMore } = await getSearchHistoryPaginated(
 				userId,
 				1,
 				10,
 			);
-			const message = formatHistoryMessage(history, 0);
+			const message = formatHistoryMessage(history, 0, userLang);
 
 			await context.message?.send(message, {
-				reply_markup: createHistoryKeyboard(1, hasMore),
+				reply_markup: createHistoryKeyboard(1, hasMore, userLang),
 			});
 			return;
 		}
@@ -1098,16 +1119,18 @@ ${t(userLang, "language.select")}
 			await context.answer();
 			if (!userId) return;
 
+			const user = chatId ? await findUserByChatId(chatId) : null;
+			const userLang = (user?.language as LanguageCode) || "en";
 			const cleared = await clearHistory(userId);
 			if (cleared) {
 				await context.answer({
-					text: MESSAGES.HISTORY_CLEARED,
+					text: t(userLang, "history.cleared"),
 					show_alert: true,
 				});
 				try {
-					await context.message?.editText("📜 Search history cleared.", {
+					await context.message?.editText(t(userLang, "history.cleared"), {
 						reply_markup: new InlineKeyboard().text(
-							"🔍 Search",
+							t(userLang, "buttons.search"),
 							"action:search",
 						),
 					});
@@ -1128,7 +1151,9 @@ ${t(userLang, "language.select")}
 				context.research_session.lastOffset = 0;
 			}
 
-			await context.message?.send(`🔍 Searching for "${query}"...`);
+			const user = chatId ? await findUserByChatId(chatId) : null;
+			const userLang = (user?.language as LanguageCode) || "en";
+			await context.message?.send(t(userLang, "search.searching"));
 
 			const papers = await fetchPapers(query);
 
@@ -1137,14 +1162,14 @@ ${t(userLang, "language.select")}
 			}
 
 			if (!papers.length) {
-				await context.message?.send(MESSAGES.NO_RESULTS);
+				await context.message?.send(t(userLang, "search.noResults"));
 				return;
 			}
 
 			const message = formatPapersMessage(papers);
 			const keyboard = new InlineKeyboard()
-				.text("📚 Load More", "action:more")
-				.text("🔍 New Search", "action:search");
+				.text(t(userLang, "buttons.loadMore"), "action:more")
+				.text(t(userLang, "search.newSearch"), "action:search");
 
 			await context.message?.send(message, { reply_markup: keyboard });
 			return;
@@ -1155,21 +1180,28 @@ ${t(userLang, "language.select")}
 			const category = data.replace("category:", "");
 			await context.answer();
 
+			const catUser = chatId ? await findUserByChatId(chatId) : null;
+			const catUserLang = (catUser?.language as LanguageCode) || "en";
+
 			await context.message?.send(
-				`🔍 Loading recent papers in ${ARXIV_CATEGORIES[category] || category}...`,
+				t(catUserLang, "categoryBrowse.loading", {
+					category: ARXIV_CATEGORIES[category] || category,
+				}),
 			);
 
 			const papers = await searchByCategory(category, 5);
 
 			if (!papers.length) {
-				await context.message?.send(`No papers found in category ${category}.`);
+				await context.message?.send(
+					t(catUserLang, "categoryBrowse.noResults", { category }),
+				);
 				return;
 			}
 
 			const message = format`${bold`📂 ${ARXIV_CATEGORIES[category] || category}`}\n\n${formatPapersMessage(papers)}`;
 			const keyboard = new InlineKeyboard()
-				.text("🔍 New Search", "action:search")
-				.text("📂 Categories", "action:categories");
+				.text(t(catUserLang, "search.newSearch"), "action:search")
+				.text(t(catUserLang, "categories.title"), "action:categories");
 
 			await context.message?.send(message, { reply_markup: keyboard });
 			return;
@@ -1180,9 +1212,11 @@ ${t(userLang, "language.select")}
 			const arxivId = data.replace("abstract:", "");
 			await context.answer();
 
+			const user = chatId ? await findUserByChatId(chatId) : null;
+			const userLang = (user?.language as LanguageCode) || "en";
 			const paper = await fetchPaperById(arxivId);
 			if (!paper) {
-				await context.message?.send("❌ Could not fetch paper details.");
+				await context.message?.send(t(userLang, "errors.couldNotFetch"));
 				return;
 			}
 
@@ -1202,7 +1236,11 @@ ${paper.summary}
 🔗 ${paper.link}
       `;
 
-			const keyboard = createPaperActionsKeyboard(arxivId, isBookmarkedPaper);
+			const keyboard = createPaperActionsKeyboard(
+				arxivId,
+				isBookmarkedPaper,
+				userLang,
+			);
 
 			try {
 				await context.message?.editText(message, { reply_markup: keyboard });
@@ -1217,9 +1255,11 @@ ${paper.summary}
 			const arxivId = data.replace("bibtex:", "");
 			await context.answer();
 
+			const user = chatId ? await findUserByChatId(chatId) : null;
+			const userLang = (user?.language as LanguageCode) || "en";
 			const paper = await fetchPaperById(arxivId);
 			if (!paper) {
-				await context.message?.send("❌ Could not fetch paper details.");
+				await context.message?.send(t(userLang, "errors.couldNotFetch"));
 				return;
 			}
 
@@ -1242,36 +1282,44 @@ ${paper.summary}
 		// --- Subscription handlers ---
 		if (data === "action:add_subscription") {
 			await context.answer();
-			await context.message?.send(
-				"📬 To subscribe to a topic, use:\n/subscribe <topic>\n\nExample: /subscribe machine learning",
-			);
+			const user = chatId ? await findUserByChatId(chatId) : null;
+			const userLang = (user?.language as LanguageCode) || "en";
+			await context.message?.send(t(userLang, "subscriptions.prompt"));
 			return;
 		}
 
 		if (data === "action:subscriptions") {
 			await context.answer();
 			if (!userId) {
-				await context.message?.send("Please use /subscriptions command.");
+				const user = chatId ? await findUserByChatId(chatId) : null;
+				const userLang = (user?.language as LanguageCode) || "en";
+				await context.message?.send(t(userLang, "commands.subscriptions"));
 				return;
 			}
 
 			const { subscriptions, count } = await getSubscriptionsList(userId);
 
 			if (count === 0) {
+				const user = chatId ? await findUserByChatId(chatId) : null;
+				const userLang = (user?.language as LanguageCode) || "en";
 				const keyboard = new InlineKeyboard()
-					.text("➕ Add Subscription", "action:add_subscription")
+					.text(
+						t(userLang, "subscriptions.addSubscription"),
+						"action:add_subscription",
+					)
 					.row()
-					.text("🔍 Search Papers", "action:search");
+					.text(t(userLang, "buttons.searchPapers"), "action:search");
 
-				await context.message?.send(
-					"📭 You don't have any subscriptions yet.\n\nUse /subscribe <topic> to get periodic updates on research topics.",
-					{ reply_markup: keyboard },
-				);
+				await context.message?.send(t(userLang, "subscriptions.empty"), {
+					reply_markup: keyboard,
+				});
 			} else {
+				const user = chatId ? await findUserByChatId(chatId) : null;
+				const userLang = (user?.language as LanguageCode) || "en";
 				const subscriptionsList = formatSubscriptionsMessage(subscriptions);
 				const keyboard = createSubscriptionsKeyboard(subscriptions);
 				await context.message?.send(
-					format`📬 ${bold("Your Subscriptions")}\n\n${subscriptionsList}\n\nTap a topic to manage or remove it.`,
+					format`${bold(t(userLang, "ui.yourSubscriptions"))}\n\n${subscriptionsList}\n\n${t(userLang, "ui.tapToManage")}`,
 					{ reply_markup: keyboard },
 				);
 			}
@@ -1287,7 +1335,7 @@ ${paper.summary}
 			const subscription = await getSubscriptionById(subscriptionId);
 			if (!subscription) {
 				await context.answer({
-					text: "Subscription not found.",
+					text: t("en", "callbacks.subscriptionNotFound"),
 					show_alert: true,
 				});
 				return;
@@ -1303,13 +1351,18 @@ ${paper.summary}
 			const { subscriptions, count } = await getSubscriptionsList(userId);
 			if (count === 0) {
 				try {
+					const user = chatId ? await findUserByChatId(chatId) : null;
+					const userLang = (user?.language as LanguageCode) || "en";
 					await context.message?.editText(
-						"📭 You don't have any subscriptions.\n\nUse /subscribe <topic> to get updates.",
+						`${t(userLang, "subscriptions.noSubscriptions")}\n\n${t(userLang, "subscriptions.useSubscribe")}`,
 						{
 							reply_markup: new InlineKeyboard()
-								.text("➕ Add Subscription", "action:add_subscription")
+								.text(
+									t(userLang, "subscriptions.addSubscription"),
+									"action:add_subscription",
+								)
 								.row()
-								.text("🔍 Search Papers", "action:search"),
+								.text(t(userLang, "buttons.searchPapers"), "action:search"),
 						},
 					);
 				} catch {
@@ -1317,9 +1370,11 @@ ${paper.summary}
 				}
 			} else {
 				try {
+					const user = chatId ? await findUserByChatId(chatId) : null;
+					const userLang = (user?.language as LanguageCode) || "en";
 					const subscriptionsList = formatSubscriptionsMessage(subscriptions);
 					await context.message?.editText(
-						format`📬 ${bold("Your Subscriptions")}\n\n${subscriptionsList}\n\nTap a topic to manage or remove it.`,
+						format`${bold(t(userLang, "ui.yourSubscriptions"))}\n\n${subscriptionsList}\n\n${t(userLang, "ui.tapToManage")}`,
 						{
 							reply_markup: createSubscriptionsKeyboard(subscriptions),
 						},
@@ -1340,13 +1395,15 @@ ${paper.summary}
 			const subscription = await getSubscriptionById(subscriptionId);
 			if (!subscription) {
 				await context.answer({
-					text: "Subscription not found.",
+					text: t("en", "callbacks.subscriptionNotFound"),
 					show_alert: true,
 				});
 				return;
 			}
 
-			const message = `⚙️ Subscription Settings\n\n📌 Topic: ${subscription.topic}\n⏱️ Interval: ${subscription.intervalHours || 24} hours\n📂 Category: ${subscription.category || "All"}`;
+			const user = chatId ? await findUserByChatId(chatId) : null;
+			const userLang = (user?.language as LanguageCode) || "en";
+			const message = `${t(userLang, "subscriptions.settings")}\n\n${t(userLang, "subscriptions.topic")}: ${subscription.topic}\n⏱️ ${t(userLang, "subscriptions.interval")}: ${subscription.intervalHours || 24} ${t(userLang, "time.hours")}\n${t(userLang, "subscriptions.category")}: ${subscription.category || "All"}`;
 
 			try {
 				await context.message?.editText(message, {
@@ -1372,9 +1429,12 @@ ${paper.summary}
 			const subscription = await getSubscriptionById(subscriptionId);
 			if (!subscription) return;
 
+			const user = chatId ? await findUserByChatId(chatId) : null;
+			const userLang = (user?.language as LanguageCode) || "en";
+
 			try {
 				await context.message?.editText(
-					`⏱️ Select update frequency for "${subscription.topic}":`,
+					t(userLang, "ui.selectFrequency", { topic: subscription.topic }),
 					{
 						reply_markup: createIntervalKeyboard(
 							subscriptionId,
@@ -1398,15 +1458,20 @@ ${paper.summary}
 
 			const updated = await updateInterval(subscriptionId, intervalHours);
 			if (updated) {
+				const user = chatId ? await findUserByChatId(chatId) : null;
+				const userLang = (user?.language as LanguageCode) || "en";
+
 				await context.answer({
-					text: `✅ Interval updated to every ${intervalHours} hours.`,
+					text: t(userLang, "callbacks.intervalUpdated", {
+						hours: String(intervalHours),
+					}),
 					show_alert: true,
 				});
 
 				// Go back to subscription settings
 				try {
 					await context.message?.editText(
-						`⚙️ Subscription Settings\n\n📌 Topic: ${updated.topic}\n⏱️ Interval: ${intervalHours} hours\n📂 Category: ${updated.category || "All"}`,
+						`${t(userLang, "ui.settingsHeader")}\n\n${t(userLang, "subscriptions.topic")}: ${updated.topic}\n${t(userLang, "ui.intervalLabel")}: ${intervalHours} ${t(userLang, "time.hours")}\n${t(userLang, "ui.categoryLabel")}: ${updated.category || "All"}`,
 						{
 							reply_markup: createSubscriptionSettingsKeyboard(updated),
 						},
@@ -1423,21 +1488,24 @@ ${paper.summary}
 			const arxivId = data.replace("similar:", "");
 			await context.answer();
 
-			await context.message?.send(`🔍 Finding similar papers...`);
+			const user = chatId ? await findUserByChatId(chatId) : null;
+			const userLang = (user?.language as LanguageCode) || "en";
+
+			await context.message?.send(t(userLang, "similar.searching"));
 
 			const similarPapers = await getSimilarPapersById(arxivId, {
 				maxResults: 5,
 			});
 
 			if (!similarPapers || similarPapers.length === 0) {
-				await context.message?.send("No similar papers found.");
+				await context.message?.send(t(userLang, "similar.noResults"));
 				return;
 			}
 
-			const message = format`${bold`📚 Similar Papers`}\n\n${formatPapersMessage(similarPapers)}`;
+			const message = format`${bold`${t(userLang, "papers.similarPapers")}`}\n\n${formatPapersMessage(similarPapers)}`;
 
 			const keyboard = new InlineKeyboard().text(
-				"🔍 New Search",
+				t(userLang, "search.newSearch"),
 				"action:search",
 			);
 
@@ -1452,9 +1520,11 @@ ${paper.summary}
 
 			if (exportType === "cancel") {
 				try {
-					await context.message?.editText("Export cancelled.", {
+					const user = chatId ? await findUserByChatId(chatId) : null;
+					const userLang = (user?.language as LanguageCode) || "en";
+					await context.message?.editText(t(userLang, "export.cancelled"), {
 						reply_markup: new InlineKeyboard().text(
-							"📚 View Bookmarks",
+							t(userLang, "bookmarks.viewBookmarks"),
 							"action:bookmarks",
 						),
 					});
@@ -1465,7 +1535,9 @@ ${paper.summary}
 			}
 
 			if (!userId || !chatId) {
-				await context.message?.send("Please use /export command.");
+				const user = chatId ? await findUserByChatId(chatId) : null;
+				const userLang = (user?.language as LanguageCode) || "en";
+				await context.message?.send(t(userLang, "commands.export"));
 				return;
 			}
 
@@ -1484,21 +1556,29 @@ ${paper.summary}
 				filename = `bookmarks_${Date.now()}${getExportExtension("csv")}`;
 				preview = await formatCSVTablePreview(userId, 5);
 			} else {
-				await context.message?.send("❌ Invalid export format.");
+				const user = chatId ? await findUserByChatId(chatId) : null;
+				const userLang = (user?.language as LanguageCode) || "en";
+				await context.message?.send(t(userLang, "errors.invalidExportFormat"));
 				return;
 			}
 
 			if (!content) {
-				await context.message?.send(
-					"📚 No bookmarks to export. Save some papers first!",
-				);
+				const user = chatId ? await findUserByChatId(chatId) : null;
+				const userLang = (user?.language as LanguageCode) || "en";
+				await context.message?.send(t(userLang, "bookmarks.exportEmpty"));
 				return;
 			}
 
 			// Update message to show processing
+			const user = chatId ? await findUserByChatId(chatId) : null;
+			const userLang = (user?.language as LanguageCode) || "en";
+			const formatName =
+				exportFormat === "bibtex"
+					? t(userLang, "ui.bibtexFormat")
+					: t(userLang, "ui.csvFormat");
 			try {
 				await context.message?.editText(
-					`📥 Preparing ${exportFormat === "bibtex" ? "BibTeX" : "CSV"} export...`,
+					t(userLang, "ui.exportPreparing", { format: formatName }),
 					{
 						reply_markup: new InlineKeyboard(),
 					},
@@ -1515,8 +1595,8 @@ ${paper.summary}
 				// Send the document with preview as caption
 				const captionText =
 					exportFormat === "bibtex"
-						? `📄 BibTeX Export\n\n${preview}`
-						: `📊 CSV Export\n\n${preview}`;
+						? `📄 ${t(userLang, "ui.bibtexFormat")} Export\n\n${preview}`
+						: `📊 ${t(userLang, "ui.csvFormat")} Export\n\n${preview}`;
 
 				// Truncate caption if too long (Telegram limit is 1024 chars)
 				const truncatedCaption =
@@ -1534,11 +1614,14 @@ ${paper.summary}
 				// Update original message to confirm success
 				try {
 					await context.message?.editText(
-						`✅ ${exportFormat === "bibtex" ? "BibTeX" : "CSV"} export sent! Check the file above.`,
+						t(userLang, "ui.exportSuccess", { format: formatName }),
 						{
 							reply_markup: new InlineKeyboard()
-								.text("📚 View Bookmarks", "action:bookmarks")
-								.text("🔍 Search", "action:search"),
+								.text(
+									t(userLang, "bookmarks.viewBookmarks"),
+									"action:bookmarks",
+								)
+								.text(t(userLang, "search.newSearch"), "action:search"),
 						},
 					);
 				} catch {
@@ -1569,11 +1652,11 @@ ${paper.summary}
 							: content;
 
 						await context.message?.editText(
-							`📄 ${bold`BibTeX Export`}\n\nCopy the content below:\n\n\`\`\`\n${displayContent}\n\`\`\``,
+							`📄 ${bold`${t(userLang, "ui.bibtexFormat")} Export`}\n\nCopy the content below:\n\n\`\`\`\n${displayContent}\n\`\`\``,
 							{
 								parse_mode: "Markdown",
 								reply_markup: new InlineKeyboard().text(
-									"📚 View Bookmarks",
+									t(userLang, "ui.viewBookmarksButton"),
 									"action:bookmarks",
 								),
 							},
@@ -1581,11 +1664,11 @@ ${paper.summary}
 					} else {
 						// For CSV, show table preview and raw content
 						await context.message?.editText(
-							`📊 ${bold`CSV Export`}\n\n${preview}\n\n_Full CSV content sent as text below._`,
+							`📊 ${bold`${t(userLang, "ui.csvFormat")} Export`}\n\n${preview}\n\n_Full CSV content sent as text below._`,
 							{
 								parse_mode: "Markdown",
 								reply_markup: new InlineKeyboard().text(
-									"📚 View Bookmarks",
+									t(userLang, "ui.viewBookmarksButton"),
 									"action:bookmarks",
 								),
 							},
@@ -1601,9 +1684,9 @@ ${paper.summary}
 					}
 				} catch {
 					// Last resort fallback
-					await context.message?.send(
-						"❌ Could not send export file. Please try again later.",
-					);
+					const user = chatId ? await findUserByChatId(chatId) : null;
+					const userLang = (user?.language as LanguageCode) || "en";
+					await context.message?.send(t(userLang, "errors.couldNotSend"));
 				}
 			}
 			return;
@@ -1633,11 +1716,13 @@ ${paper.summary}
 
 		let topic = context.args ?? "";
 
+		const userLang = await getUserLanguage(context.chatId);
+
 		// If no topic provided, ask the user interactively
 		if (!topic) {
 			const answer = await context.prompt(
 				"message",
-				"🔍 What topic are you looking for?",
+				t(userLang, "search.prompt"),
 			);
 			topic = answer.text || "";
 		}
@@ -1645,7 +1730,7 @@ ${paper.summary}
 		// Validate and sanitize topic
 		topic = topic.trim();
 		if (!topic) {
-			return context.send(MESSAGES.SEARCH_CANCELLED);
+			return context.send(t(userLang, "cancel"));
 		}
 
 		// Limit topic length
@@ -1662,7 +1747,7 @@ ${paper.summary}
 		context.research_session.lastTopic = topic;
 		context.research_session.lastOffset = 0;
 
-		await context.send(`🔍 Searching for "${topic}"...`);
+		await context.send(t(userLang, "search.searching"));
 
 		const papers = await fetchPapers(topic);
 
@@ -1672,15 +1757,15 @@ ${paper.summary}
 		}
 
 		if (!papers.length) {
-			return context.send(MESSAGES.NO_RESULTS);
+			return context.send(t(userLang, "search.noResults"));
 		}
 
 		const message = formatPapersMessage(papers);
 
 		// Add navigation keyboard
 		const keyboard = new InlineKeyboard()
-			.text("📚 Load More", "action:more")
-			.text("🔍 New Search", "action:search");
+			.text(t(userLang, "buttons.loadMore"), "action:more")
+			.text(t(userLang, "search.newSearch"), "action:search");
 
 		return context.send(message, { reply_markup: keyboard });
 	})
@@ -1693,9 +1778,10 @@ ${paper.summary}
 			return context.send(formatRateLimitMessage(context.chatId));
 		}
 
+		const userLang = await getUserLanguage(context.chatId);
 		const topic = context.research_session.lastTopic;
 		if (!topic) {
-			return context.send(MESSAGES.USE_SEARCH_FIRST);
+			return context.send(t(userLang, "search.useSearchFirst"));
 		}
 
 		const nextOffset = context.research_session.lastOffset + 5;
@@ -1707,20 +1793,20 @@ ${paper.summary}
 			offset: nextOffset,
 		});
 
-		await context.send(`📚 Loading more papers for "${topic}"...`);
+		await context.send(t(userLang, "search.loadingMore", { topic }));
 
 		const papers = await fetchPapers(topic, nextOffset);
 
 		if (!papers.length) {
-			return context.send(MESSAGES.NO_MORE_PAPERS);
+			return context.send(t(userLang, "search.noMorePapers"));
 		}
 
 		const message = formatPapersMessage(papers, nextOffset);
 
 		// Add navigation keyboard
 		const keyboard = new InlineKeyboard()
-			.text("📚 Load More", "action:more")
-			.text("🔍 New Search", "action:search");
+			.text(t(userLang, "buttons.loadMore"), "action:more")
+			.text(t(userLang, "search.newSearch"), "action:search");
 
 		return context.send(message, { reply_markup: keyboard });
 	})
@@ -1738,10 +1824,9 @@ ${paper.summary}
 			lastName: context.from?.lastName,
 		});
 
+		const userLang = await getUserLanguage(context.chatId);
 		if (!userId) {
-			return context.send(
-				"❌ Could not process subscription. Please try again.",
-			);
+			return context.send(t(userLang, "errors.couldNotProcess"));
 		}
 
 		let topicArg = context.args ?? "";
@@ -1757,9 +1842,7 @@ ${paper.summary}
 		const { topic, category } = parseSubscribeArgs(topicArg);
 
 		if (!topic) {
-			return context.send(
-				"Usage: /subscribe <topic>\nExample: /subscribe machine learning\n\nOptional category: /subscribe [cs.AI] neural networks",
-			);
+			return context.send(t(userLang, "subscriptions.prompt"));
 		}
 
 		const result = await subscribe(userId, topic, { category });
@@ -1775,8 +1858,9 @@ ${paper.summary}
 		}
 
 		const userId = await ensureUser(context.chatId, context.research_session);
+		const userLang = await getUserLanguage(context.chatId);
 		if (!userId) {
-			return context.send("❌ Could not process request. Please try again.");
+			return context.send(t(userLang, "errors.couldNotProcess"));
 		}
 
 		const topic = context.args?.trim();
@@ -1784,13 +1868,12 @@ ${paper.summary}
 		if (!topic) {
 			// Show list of subscriptions to unsubscribe from
 			const { subscriptions, count } = await getSubscriptionsList(userId);
-
 			if (count === 0) {
-				return context.send("📭 You don't have any subscriptions.");
+				return context.send(t(userLang, "subscriptions.noSubscriptions"));
 			}
 
 			const keyboard = createSubscriptionsKeyboard(subscriptions);
-			return context.send("Select a subscription to remove:", {
+			return context.send(t(userLang, "subscriptions.selectToRemove"), {
 				reply_markup: keyboard,
 			});
 		}
@@ -1807,29 +1890,31 @@ ${paper.summary}
 		}
 
 		const userId = await ensureUser(context.chatId, context.research_session);
+		const userLang = await getUserLanguage(context.chatId);
 		if (!userId) {
-			return context.send("❌ Could not load subscriptions. Please try again.");
+			return context.send(t(userLang, "errors.couldNotProcess"));
 		}
 
 		const { subscriptions, count } = await getSubscriptionsList(userId);
 
 		if (count === 0) {
 			const keyboard = new InlineKeyboard()
-				.text("➕ Add Subscription", "action:add_subscription")
+				.text(
+					t(userLang, "subscriptions.addSubscription"),
+					"action:add_subscription",
+				)
 				.row()
-				.text("🔍 Search Papers", "action:search");
-
-			return context.send(
-				"📭 You don't have any subscriptions yet.\n\nUse /subscribe <topic> to get periodic updates on research topics.",
-				{ reply_markup: keyboard },
-			);
+				.text(t(userLang, "buttons.searchPapers"), "action:search");
+			return context.send(t(userLang, "subscriptions.empty"), {
+				reply_markup: keyboard,
+			});
 		}
 
 		const subscriptionsList = formatSubscriptionsMessage(subscriptions);
-		const keyboard = createSubscriptionsKeyboard(subscriptions);
+		const subsKeyboard = createSubscriptionsKeyboard(subscriptions);
 		return context.send(
-			format`📬 ${bold("Your Subscriptions")}\n\n${subscriptionsList}\n\nTap a topic to manage or remove it.`,
-			{ reply_markup: keyboard },
+			format`${bold(t(userLang, "ui.yourSubscriptions"))}\n\n${subscriptionsList}\n\n${t(userLang, "ui.tapToManage")}`,
+			{ reply_markup: subsKeyboard },
 		);
 	})
 
@@ -1840,32 +1925,32 @@ ${paper.summary}
 			return context.send(formatRateLimitMessage(context.chatId));
 		}
 
-		const arxivId = context.args?.trim();
-
+		const userLang = await getUserLanguage(context.chatId);
+		const arxivId = context.args?.[0];
 		if (!arxivId) {
 			return context.send(
-				"Usage: /similar <arxiv_id>\nExample: /similar 2301.00001\n\nYou can find the arXiv ID in paper links (e.g., arxiv.org/abs/2301.00001)",
+				`${t(userLang, "similar.usage")}\n${t(userLang, "similar.example")}\n\n${t(userLang, "similar.hint")}`,
 			);
 		}
 
-		await context.send(`🔍 Finding similar papers to ${arxivId}...`);
+		await context.send(t(userLang, "similar.searching"));
 
 		const similarPapers = await getSimilarPapersById(arxivId, {
 			maxResults: 5,
 		});
 
 		if (similarPapers === null) {
-			return context.send(`❌ Could not find paper with ID "${arxivId}".`);
+			return context.send(t(userLang, "similar.notFound", { arxivId }));
 		}
 
 		if (similarPapers.length === 0) {
-			return context.send("No similar papers found.");
+			return context.send(t(userLang, "similar.noResults"));
 		}
 
-		const message = format`${bold`📚 Similar Papers`}\n\n${formatPapersMessage(similarPapers)}`;
+		const message = format`${bold`${t(userLang, "similar.title")}`}\n\n${formatPapersMessage(similarPapers)}`;
 
 		const keyboard = new InlineKeyboard().text(
-			"🔍 New Search",
+			t(userLang, "search.newSearch"),
 			"action:search",
 		);
 
@@ -1922,11 +2007,10 @@ ${paper.summary}
 						{
 							type: "article",
 							id: "help",
-							title: "Type at least 3 characters to search",
-							description: "Search for research papers on arXiv",
+							title: t("en", "inlineQuery.typeToSearch"),
+							description: t("en", "inlineQuery.searchDescription"),
 							input_message_content: {
-								message_text:
-									"🔍 Use this bot to search for research papers on arXiv!\n\nJust type @YourBotName followed by your search query.",
+								message_text: t("en", "inlineQuery.helpMessage"),
 							},
 						},
 					],
@@ -1944,10 +2028,10 @@ ${paper.summary}
 						{
 							type: "article",
 							id: "no-results",
-							title: `No papers found for "${query}"`,
-							description: "Try a different search term",
+							title: t("en", "inlineQuery.noResults", { query }),
+							description: t("en", "inlineQuery.tryDifferent"),
 							input_message_content: {
-								message_text: `❌ No papers found for "${query}".\n\nTry different keywords or check the spelling.`,
+								message_text: `❌ ${t("en", "inlineQuery.noResults", { query })}.\n\n${t("en", "inlineQuery.tryDifferent")}`,
 							},
 						},
 					],
@@ -2000,10 +2084,10 @@ ${paper.summary}
 					{
 						type: "article",
 						id: "error",
-						title: "Search failed",
-						description: "An error occurred. Please try again.",
+						title: t("en", "inlineQuery.searchFailed"),
+						description: t("en", "inlineQuery.tryAgain"),
 						input_message_content: {
-							message_text: "❌ Search failed. Please try again later.",
+							message_text: `❌ ${t("en", "inlineQuery.searchFailed")}. ${t("en", "errors.tryAgain")}`,
 						},
 					},
 				],

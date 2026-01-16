@@ -15,6 +15,7 @@ import {
 	getUserSearchHistory,
 } from "../db/repositories/index.js";
 import type { SearchHistoryEntry } from "../db/schema.js";
+import { type LanguageCode, t } from "../i18n/index.js";
 import { logger } from "../utils/logger.js";
 
 /**
@@ -148,17 +149,19 @@ export function formatHistoryEntry(
  *
  * @param history - Array of history entries
  * @param startIndex - Starting index for numbering
+ * @param lang - Language code for translations
  * @returns Formatted string
  */
 export function formatHistoryMessage(
 	history: SearchHistoryEntry[],
 	startIndex = 0,
+	lang: LanguageCode | string = "en",
 ): string {
 	if (history.length === 0) {
-		return "📜 No search history yet.\n\nStart searching with /search to build your history!";
+		return t(lang, "history.empty");
 	}
 
-	const header = "📜 Search History\n\n";
+	const header = `${t(lang, "history.title")}\n\n`;
 	const entries = history
 		.map((entry, i) => formatHistoryEntry(entry, startIndex + i))
 		.join("\n\n");
@@ -170,14 +173,18 @@ export function formatHistoryMessage(
  * Format recent searches as quick-access buttons
  *
  * @param searches - Array of search queries
+ * @param lang - Language code for translations
  * @returns Formatted string with instructions
  */
-export function formatRecentSearchesMessage(searches: string[]): string {
+export function formatRecentSearchesMessage(
+	searches: string[],
+	lang: LanguageCode | string = "en",
+): string {
 	if (searches.length === 0) {
-		return "📜 No recent searches.\n\nUse /search <topic> to search for papers!";
+		return t(lang, "history.empty");
 	}
 
-	return "🕐 Recent Searches\n\nTap a search to run it again:\n";
+	return `${t(lang, "history.recentSearches")}\n\n${t(lang, "history.tapToSearch")}\n`;
 }
 
 /**
@@ -185,30 +192,32 @@ export function formatRecentSearchesMessage(searches: string[]): string {
  *
  * @param page - Current page
  * @param hasMore - Whether there are more pages
+ * @param lang - Language code for translations
  * @returns InlineKeyboard
  */
 export function createHistoryKeyboard(
 	page: number,
 	hasMore: boolean,
+	lang: LanguageCode | string = "en",
 ): InlineKeyboard {
 	const keyboard = new InlineKeyboard();
 
 	// Navigation row
 	if (page > 1) {
-		keyboard.text("⬅️ Previous", `history:page:${page - 1}`);
+		keyboard.text(t(lang, "buttons.previous"), `history:page:${page - 1}`);
 	}
 
 	keyboard.text(`📖 ${page}`, "history:noop");
 
 	if (hasMore) {
-		keyboard.text("Next ➡️", `history:page:${page + 1}`);
+		keyboard.text(t(lang, "buttons.next"), `history:page:${page + 1}`);
 	}
 
 	keyboard.row();
 
 	// Action row
-	keyboard.text("🗑️ Clear History", "history:clear");
-	keyboard.text("🔍 New Search", "action:search");
+	keyboard.text(t(lang, "history.clearHistory"), "history:clear");
+	keyboard.text(t(lang, "history.newSearch"), "action:search");
 
 	return keyboard;
 }
@@ -218,11 +227,13 @@ export function createHistoryKeyboard(
  *
  * @param searches - Array of recent search queries
  * @param maxButtons - Maximum number of buttons to show
+ * @param lang - Language code for translations
  * @returns InlineKeyboard
  */
 export function createRecentSearchesKeyboard(
 	searches: string[],
 	maxButtons = 6,
+	lang: LanguageCode | string = "en",
 ): InlineKeyboard {
 	const keyboard = new InlineKeyboard();
 
@@ -247,8 +258,8 @@ export function createRecentSearchesKeyboard(
 	keyboard.row();
 
 	// Action row
-	keyboard.text("📜 Full History", "history:full");
-	keyboard.text("🔍 New Search", "action:search");
+	keyboard.text(t(lang, "history.fullHistory"), "history:full");
+	keyboard.text(t(lang, "history.newSearch"), "action:search");
 
 	return keyboard;
 }

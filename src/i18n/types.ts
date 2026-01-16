@@ -61,6 +61,9 @@ export interface Translations {
 		newSearch: string;
 		tip: string;
 		searching: string;
+		noMorePapers: string;
+		useSearchFirst: string;
+		loadingMore: string;
 	};
 
 	// Papers
@@ -73,6 +76,8 @@ export interface Translations {
 		viewPdf: string;
 		viewArxiv: string;
 		moreAuthors: string;
+		similarPapers: string;
+		noSimilarFound: string;
 	};
 
 	// Bookmarks
@@ -89,6 +94,9 @@ export interface Translations {
 		clearAllButton: string;
 		alreadyBookmarked: string;
 		couldNotLoad: string;
+		viewBookmarks: string;
+		saveButton: string;
+		savedButton: string;
 	};
 
 	// History
@@ -119,6 +127,10 @@ export interface Translations {
 		addSubscription: string;
 		noSubscriptions: string;
 		useSubscribe: string;
+		settings: string;
+		topic: string;
+		category: string;
+		selectToRemove: string;
 	};
 
 	// Errors
@@ -130,6 +142,12 @@ export interface Translations {
 		notFound: string;
 		unauthorized: string;
 		tryAgain: string;
+		couldNotProcess: string;
+		couldNotFetch: string;
+		couldNotSave: string;
+		couldNotExport: string;
+		couldNotSend: string;
+		invalidExportFormat: string;
 	};
 
 	// Buttons
@@ -146,6 +164,9 @@ export interface Translations {
 		settings: string;
 		search: string;
 		searchPapers: string;
+		loadMore: string;
+		abstract: string;
+		pdf: string;
 	};
 
 	// Stats
@@ -161,6 +182,7 @@ export interface Translations {
 	categories: {
 		title: string;
 		select: string;
+		browseByCategory: string;
 	};
 
 	// Time
@@ -215,6 +237,103 @@ export interface Translations {
 		manageSubscriptions: string;
 		unsubscribeTopic: string;
 		loadMore: string;
+	};
+
+	// Export
+	export: {
+		title: string;
+		cancelled: string;
+		selectFormat: string;
+		generating: string;
+		downloadReady: string;
+		fileCaption: string;
+	};
+
+	// Save paper
+	save: {
+		title: string;
+		usage: string;
+		example: string;
+		tip: string;
+		fetching: string;
+		success: string;
+	};
+
+	// Author search
+	author: {
+		usage: string;
+		example: string;
+		prompt: string;
+		searching: string;
+		results: string;
+		noResults: string;
+	};
+
+	// Similar papers
+	similar: {
+		usage: string;
+		example: string;
+		hint: string;
+		searching: string;
+		notFound: string;
+		noResults: string;
+		title: string;
+	};
+
+	// Callback messages
+	callbacks: {
+		tooManyRequests: string;
+		pleaseStartFirst: string;
+		userNotFound: string;
+		subscriptionNotFound: string;
+		couldNotFetchPaper: string;
+		clearBookmarksHint: string;
+		intervalUpdated: string;
+	};
+
+	// Category browsing
+	categoryBrowse: {
+		loading: string;
+		noResults: string;
+	};
+
+	// Inline query
+	inlineQuery: {
+		typeToSearch: string;
+		searchDescription: string;
+		helpMessage: string;
+		noResults: string;
+		tryDifferent: string;
+		searchFailed: string;
+		tryAgain: string;
+	};
+
+	// General UI
+	ui: {
+		errorOccurred: string;
+		paperCount: string;
+		yourSubscriptions: string;
+		tapToManage: string;
+		settingsHeader: string;
+		intervalLabel: string;
+		categoryLabel: string;
+		selectFrequency: string;
+		exportPreparing: string;
+		exportSuccess: string;
+		bibtexFormat: string;
+		csvFormat: string;
+		forLatex: string;
+		forSpreadsheets: string;
+		cancelButton: string;
+		viewBookmarksButton: string;
+	};
+
+	// Validation
+	validation: {
+		invalidArxivId: string;
+		validFormats: string;
+		alreadyBookmarked: string;
+		useBookmarksToView: string;
 	};
 }
 

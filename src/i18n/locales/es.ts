@@ -43,6 +43,9 @@ export const es: Translations = {
 		newSearch: "🔍 Nueva Búsqueda",
 		tip: '💡 Consejo: Usa términos específicos como "transformer attention mechanism" en lugar de solo "AI"',
 		searching: "🔍 Buscando artículos...",
+		noMorePapers: "📭 No se encontraron más artículos para este tema.",
+		useSearchFirst: "Usa /search primero para buscar artículos.",
+		loadingMore: '📚 Cargando más artículos para "{topic}"...',
 	},
 
 	// Papers
@@ -55,6 +58,8 @@ export const es: Translations = {
 		viewPdf: "📄 PDF",
 		viewArxiv: "🔗 arXiv",
 		moreAuthors: "+{count} más",
+		similarPapers: "📚 Artículos Similares",
+		noSimilarFound: "No se encontraron artículos similares.",
 	},
 
 	// Bookmarks
@@ -75,6 +80,9 @@ export const es: Translations = {
 			"📌 ¡Este artículo ya está en tus marcadores!\n\nUsa /bookmarks para ver tus artículos guardados.",
 		couldNotLoad:
 			"❌ No se pudieron cargar tus marcadores. Por favor intenta de nuevo.",
+		viewBookmarks: "📚 Ver Marcadores",
+		saveButton: "☆ Guardar",
+		savedButton: "⭐ Guardado",
 	},
 
 	// History
@@ -110,6 +118,10 @@ export const es: Translations = {
 		addSubscription: "➕ Añadir Suscripción",
 		noSubscriptions: "📭 No tienes ninguna suscripción.",
 		useSubscribe: "Usa /subscribe <tema> para recibir actualizaciones.",
+		settings: "⚙️ Configuración de Suscripción",
+		topic: "📌 Tema",
+		category: "📂 Categoría",
+		selectToRemove: "Selecciona una suscripción para eliminar:",
 	},
 
 	// Errors
@@ -125,6 +137,16 @@ export const es: Translations = {
 		notFound: "❌ No encontrado.",
 		unauthorized: "🔒 No tienes permiso para realizar esta acción.",
 		tryAgain: "Por favor intenta más tarde.",
+		couldNotProcess:
+			"❌ No se pudo procesar la solicitud. Por favor intenta de nuevo.",
+		couldNotFetch: "❌ No se pudieron obtener los detalles del artículo.",
+		couldNotSave:
+			"❌ No se pudo guardar el artículo. Por favor intenta de nuevo.",
+		couldNotExport:
+			"❌ No se pudieron exportar los marcadores. Por favor intenta de nuevo.",
+		couldNotSend:
+			"❌ No se pudo enviar el archivo de exportación. Por favor intenta más tarde.",
+		invalidExportFormat: "❌ Formato de exportación inválido.",
 	},
 
 	// Buttons
@@ -141,6 +163,9 @@ export const es: Translations = {
 		settings: "⚙️ Ajustes",
 		search: "🔍 Buscar",
 		searchPapers: "🔍 Buscar Artículos",
+		loadMore: "📚 Cargar Más",
+		abstract: "📖 Resumen",
+		pdf: "📄 PDF",
 	},
 
 	// Stats
@@ -156,6 +181,7 @@ export const es: Translations = {
 	categories: {
 		title: "📂 Categorías de arXiv",
 		select: "Selecciona una categoría para explorar artículos recientes:",
+		browseByCategory: "📂 Explorar por Categoría",
 	},
 
 	// Time
@@ -211,6 +237,107 @@ export const es: Translations = {
 		manageSubscriptions: "/subscriptions - Gestionar suscripciones",
 		unsubscribeTopic: "/unsubscribe [id] - Eliminar suscripción",
 		loadMore: "/more - Cargar más resultados",
+	},
+
+	// Export
+	export: {
+		title: "📥 Exportar Marcadores",
+		cancelled: "Exportación cancelada.",
+		selectFormat: "Selecciona el formato de exportación:",
+		generating: "Generando exportación...",
+		downloadReady: "¡Tu exportación está lista!",
+		fileCaption: "📚 Tus marcadores ({count} artículos)",
+	},
+
+	// Save paper
+	save: {
+		title: "📥 Guardar Artículo en Marcadores",
+		usage: "Para guardar un artículo, proporciona el ID de arXiv o URL:",
+		example: "/save 2301.00001\n/save https://arxiv.org/abs/2301.00001",
+		tip: "¡También puedes guardar artículos directamente desde los resultados de búsqueda usando el botón ☆ Guardar!",
+		fetching: "🔍 Obteniendo artículo de arXiv...",
+		success: "⭐ ¡Artículo guardado en marcadores!",
+	},
+
+	// Author search
+	author: {
+		usage: "Uso: /author <nombre>",
+		example: "Ejemplo: /author Yoshua Bengio",
+		prompt: "🔍 Ingresa el nombre del autor a buscar:",
+		searching: '🔍 Buscando artículos de "{name}"...',
+		results: "Artículos de {name}",
+		noResults: 'No se encontraron artículos para el autor "{name}".',
+	},
+
+	// Similar papers
+	similar: {
+		usage: "Uso: /similar <arxiv_id>",
+		example: "Ejemplo: /similar 2301.00001",
+		hint: "Puedes encontrar el ID de arXiv en los enlaces de artículos (ej. arxiv.org/abs/2301.00001)",
+		searching: "🔍 Buscando artículos similares...",
+		notFound: '❌ No se pudo encontrar el artículo con ID "{arxivId}".',
+		noResults: "No se encontraron artículos similares.",
+		title: "📚 Artículos Similares",
+	},
+
+	// Callback messages
+	callbacks: {
+		tooManyRequests: "Demasiadas solicitudes. Por favor espera.",
+		pleaseStartFirst: "Por favor inicia el bot primero con /start",
+		userNotFound: "Usuario no encontrado. Por favor intenta /start primero.",
+		subscriptionNotFound: "Suscripción no encontrada.",
+		couldNotFetchPaper: "No se pudieron obtener los detalles del artículo.",
+		clearBookmarksHint:
+			"Para borrar todos los marcadores, usa un comando dedicado.",
+		intervalUpdated: "✅ Intervalo actualizado a cada {hours} horas.",
+	},
+
+	// Category browsing
+	categoryBrowse: {
+		loading: "🔍 Cargando artículos recientes en {category}...",
+		noResults: "No se encontraron artículos en la categoría {category}.",
+	},
+
+	// Inline query
+	inlineQuery: {
+		typeToSearch: "Escribe al menos 3 caracteres para buscar",
+		searchDescription: "Buscar artículos de investigación en arXiv",
+		helpMessage:
+			"🔍 ¡Usa este bot para buscar artículos de investigación en arXiv!\n\nSimplemente escribe @NombreDelBot seguido de tu consulta de búsqueda.",
+		noResults: 'No se encontraron artículos para "{query}"',
+		tryDifferent: "Intenta con un término de búsqueda diferente",
+		searchFailed: "Búsqueda fallida",
+		tryAgain: "Ocurrió un error. Por favor intenta de nuevo.",
+	},
+
+	// General UI
+	ui: {
+		errorOccurred: "❌ Ocurrió un error. Por favor intenta más tarde.",
+		paperCount: "Tienes {count} artículo(s) guardado(s).",
+		yourSubscriptions: "📬 Tus Suscripciones",
+		tapToManage: "Toca un tema para gestionarlo o eliminarlo.",
+		settingsHeader: "⚙️ Configuración de Suscripción",
+		intervalLabel: "⏱️ Intervalo",
+		categoryLabel: "📂 Categoría",
+		selectFrequency:
+			'⏱️ Selecciona la frecuencia de actualización para "{topic}":',
+		exportPreparing: "📥 Preparando exportación {format}...",
+		exportSuccess:
+			"✅ ¡Exportación {format} enviada! Revisa el archivo arriba.",
+		bibtexFormat: "BibTeX",
+		csvFormat: "CSV",
+		forLatex: "Para LaTeX y gestores de citas",
+		forSpreadsheets: "Para hojas de cálculo (Excel, Google Sheets)",
+		cancelButton: "❌ Cancelar",
+		viewBookmarksButton: "📚 Ver Marcadores",
+	},
+
+	// Validation
+	validation: {
+		invalidArxivId: "❌ ID de arXiv o URL inválido.",
+		validFormats: "Formatos válidos:",
+		alreadyBookmarked: "📌 ¡Este artículo ya está en tus marcadores!",
+		useBookmarksToView: "Usa /bookmarks para ver tus artículos guardados.",
 	},
 };
 

@@ -43,6 +43,9 @@ export const zh: Translations = {
 		newSearch: "🔍 新搜索",
 		tip: "💡 提示：使用具体术语如「transformer attention mechanism」而不是仅仅「AI」",
 		searching: "🔍 搜索论文中...",
+		noMorePapers: "📭 该主题没有更多论文了。",
+		useSearchFirst: "请先使用 /search 搜索论文。",
+		loadingMore: "📚 正在加载更多「{topic}」的论文...",
 	},
 
 	// Papers
@@ -55,6 +58,8 @@ export const zh: Translations = {
 		viewPdf: "📄 PDF",
 		viewArxiv: "🔗 arXiv",
 		moreAuthors: "+{count} 位更多",
+		similarPapers: "📚 相似论文",
+		noSimilarFound: "未找到相似论文。",
 	},
 
 	// Bookmarks
@@ -72,6 +77,9 @@ export const zh: Translations = {
 		alreadyBookmarked:
 			"📌 此论文已在您的书签中！\n\n使用 /bookmarks 查看已保存的论文。",
 		couldNotLoad: "❌ 无法加载您的书签。请重试。",
+		viewBookmarks: "📚 查看书签",
+		saveButton: "☆ 保存",
+		savedButton: "⭐ 已保存",
 	},
 
 	// History
@@ -104,6 +112,10 @@ export const zh: Translations = {
 		addSubscription: "➕ 添加订阅",
 		noSubscriptions: "📭 您没有任何订阅。",
 		useSubscribe: "使用 /subscribe <主题> 获取更新。",
+		settings: "⚙️ 订阅设置",
+		topic: "📌 主题",
+		category: "📂 类别",
+		selectToRemove: "选择要移除的订阅：",
 	},
 
 	// Errors
@@ -115,6 +127,12 @@ export const zh: Translations = {
 		notFound: "❌ 未找到。",
 		unauthorized: "🔒 您没有权限执行此操作。",
 		tryAgain: "请稍后再试。",
+		couldNotProcess: "❌ 无法处理请求。请重试。",
+		couldNotFetch: "❌ 无法获取论文详情。",
+		couldNotSave: "❌ 无法保存论文。请重试。",
+		couldNotExport: "❌ 无法导出书签。请重试。",
+		couldNotSend: "❌ 无法发送导出文件。请稍后再试。",
+		invalidExportFormat: "❌ 无效的导出格式。",
 	},
 
 	// Buttons
@@ -131,6 +149,9 @@ export const zh: Translations = {
 		settings: "⚙️ 设置",
 		search: "🔍 搜索",
 		searchPapers: "🔍 搜索论文",
+		loadMore: "📚 加载更多",
+		abstract: "📖 摘要",
+		pdf: "📄 PDF",
 	},
 
 	// Stats
@@ -146,6 +167,7 @@ export const zh: Translations = {
 	categories: {
 		title: "📂 arXiv 类别",
 		select: "选择一个类别浏览最新论文：",
+		browseByCategory: "📂 按类别浏览",
 	},
 
 	// Time
@@ -200,6 +222,104 @@ export const zh: Translations = {
 		manageSubscriptions: "/subscriptions - 管理订阅",
 		unsubscribeTopic: "/unsubscribe [id] - 取消订阅",
 		loadMore: "/more - 加载更多结果",
+	},
+
+	// Export
+	export: {
+		title: "📥 导出书签",
+		cancelled: "导出已取消。",
+		selectFormat: "选择导出格式：",
+		generating: "正在生成导出...",
+		downloadReady: "您的导出已准备好！",
+		fileCaption: "📚 您的书签（{count} 篇论文）",
+	},
+
+	// Save paper
+	save: {
+		title: "📥 保存论文到书签",
+		usage: "要保存论文，请提供 arXiv ID 或 URL：",
+		example: "/save 2301.00001\n/save https://arxiv.org/abs/2301.00001",
+		tip: "您也可以直接从搜索结果中使用 ☆ 保存按钮保存论文！",
+		fetching: "🔍 正在从 arXiv 获取论文...",
+		success: "⭐ 论文已保存到书签！",
+	},
+
+	// Author search
+	author: {
+		usage: "用法：/author <姓名>",
+		example: "示例：/author Yoshua Bengio",
+		prompt: "🔍 输入要搜索的作者姓名：",
+		searching: "🔍 正在搜索「{name}」的论文...",
+		results: "{name} 的论文",
+		noResults: "未找到作者「{name}」的论文。",
+	},
+
+	// Similar papers
+	similar: {
+		usage: "用法：/similar <arxiv_id>",
+		example: "示例：/similar 2301.00001",
+		hint: "您可以在论文链接中找到 arXiv ID（例如 arxiv.org/abs/2301.00001）",
+		searching: "🔍 正在查找相似论文...",
+		notFound: "❌ 找不到 ID 为「{arxivId}」的论文。",
+		noResults: "未找到相似论文。",
+		title: "📚 相似论文",
+	},
+
+	// Callback messages
+	callbacks: {
+		tooManyRequests: "请求过多。请稍候。",
+		pleaseStartFirst: "请先使用 /start 启动机器人",
+		userNotFound: "用户未找到。请先尝试 /start。",
+		subscriptionNotFound: "订阅未找到。",
+		couldNotFetchPaper: "无法获取论文详情。",
+		clearBookmarksHint: "要清除所有书签，请使用专用命令。",
+		intervalUpdated: "✅ 间隔已更新为每 {hours} 小时。",
+	},
+
+	// Category browsing
+	categoryBrowse: {
+		loading: "🔍 正在加载 {category} 的最新论文...",
+		noResults: "在类别 {category} 中未找到论文。",
+	},
+
+	// Inline query
+	inlineQuery: {
+		typeToSearch: "输入至少 3 个字符进行搜索",
+		searchDescription: "在 arXiv 上搜索研究论文",
+		helpMessage:
+			"🔍 使用此机器人在 arXiv 上搜索研究论文！\n\n只需输入 @机器人名称 加上您的搜索查询。",
+		noResults: "未找到「{query}」的论文",
+		tryDifferent: "尝试不同的搜索词",
+		searchFailed: "搜索失败",
+		tryAgain: "发生错误。请重试。",
+	},
+
+	// General UI
+	ui: {
+		errorOccurred: "❌ 发生错误。请稍后再试。",
+		paperCount: "您有 {count} 篇已收藏的论文。",
+		yourSubscriptions: "📬 您的订阅",
+		tapToManage: "点击主题进行管理或移除。",
+		settingsHeader: "⚙️ 订阅设置",
+		intervalLabel: "⏱️ 间隔",
+		categoryLabel: "📂 类别",
+		selectFrequency: "⏱️ 选择「{topic}」的更新频率：",
+		exportPreparing: "📥 正在准备 {format} 导出...",
+		exportSuccess: "✅ {format} 导出已发送！请查看上方文件。",
+		bibtexFormat: "BibTeX",
+		csvFormat: "CSV",
+		forLatex: "用于 LaTeX 和引用管理器",
+		forSpreadsheets: "用于电子表格（Excel、Google Sheets）",
+		cancelButton: "❌ 取消",
+		viewBookmarksButton: "📚 查看书签",
+	},
+
+	// Validation
+	validation: {
+		invalidArxivId: "❌ 无效的 arXiv ID 或 URL。",
+		validFormats: "有效格式：",
+		alreadyBookmarked: "📌 此论文已在您的书签中！",
+		useBookmarksToView: "使用 /bookmarks 查看已保存的论文。",
 	},
 };
 

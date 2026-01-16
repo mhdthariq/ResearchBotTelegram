@@ -43,6 +43,9 @@ export const id: Translations = {
 		newSearch: "🔍 Pencarian Baru",
 		tip: '💡 Tips: Gunakan istilah spesifik seperti "transformer attention mechanism" daripada hanya "AI"',
 		searching: "🔍 Mencari makalah...",
+		noMorePapers: "📭 Tidak ada makalah lagi untuk topik ini.",
+		useSearchFirst: "Gunakan /search terlebih dahulu untuk mencari makalah.",
+		loadingMore: '📚 Memuat lebih banyak makalah untuk "{topic}"...',
 	},
 
 	// Papers
@@ -55,6 +58,8 @@ export const id: Translations = {
 		viewPdf: "📄 PDF",
 		viewArxiv: "🔗 arXiv",
 		moreAuthors: "+{count} lainnya",
+		similarPapers: "📚 Makalah Serupa",
+		noSimilarFound: "Tidak ada makalah serupa ditemukan.",
 	},
 
 	// Bookmarks
@@ -74,6 +79,9 @@ export const id: Translations = {
 		alreadyBookmarked:
 			"📌 Makalah ini sudah ada di bookmark Anda!\n\nGunakan /bookmarks untuk melihat makalah yang disimpan.",
 		couldNotLoad: "❌ Tidak dapat memuat bookmark Anda. Silakan coba lagi.",
+		viewBookmarks: "📚 Lihat Bookmark",
+		saveButton: "☆ Simpan",
+		savedButton: "⭐ Tersimpan",
 	},
 
 	// History
@@ -109,6 +117,10 @@ export const id: Translations = {
 		addSubscription: "➕ Tambah Langganan",
 		noSubscriptions: "📭 Anda tidak memiliki langganan.",
 		useSubscribe: "Gunakan /subscribe <topik> untuk mendapatkan pembaruan.",
+		settings: "⚙️ Pengaturan Langganan",
+		topic: "📌 Topik",
+		category: "📂 Kategori",
+		selectToRemove: "Pilih langganan untuk dihapus:",
 	},
 
 	// Errors
@@ -124,6 +136,13 @@ export const id: Translations = {
 		notFound: "❌ Tidak ditemukan.",
 		unauthorized: "🔒 Anda tidak memiliki izin untuk melakukan tindakan ini.",
 		tryAgain: "Silakan coba lagi nanti.",
+		couldNotProcess: "❌ Tidak dapat memproses permintaan. Silakan coba lagi.",
+		couldNotFetch: "❌ Tidak dapat mengambil detail makalah.",
+		couldNotSave: "❌ Tidak dapat menyimpan makalah. Silakan coba lagi.",
+		couldNotExport: "❌ Tidak dapat mengekspor bookmark. Silakan coba lagi.",
+		couldNotSend:
+			"❌ Tidak dapat mengirim file ekspor. Silakan coba lagi nanti.",
+		invalidExportFormat: "❌ Format ekspor tidak valid.",
 	},
 
 	// Buttons
@@ -140,6 +159,9 @@ export const id: Translations = {
 		settings: "⚙️ Pengaturan",
 		search: "🔍 Cari",
 		searchPapers: "🔍 Cari Makalah",
+		loadMore: "📚 Muat Lagi",
+		abstract: "📖 Abstrak",
+		pdf: "📄 PDF",
 	},
 
 	// Stats
@@ -155,6 +177,7 @@ export const id: Translations = {
 	categories: {
 		title: "📂 Kategori arXiv",
 		select: "Pilih kategori untuk menjelajahi makalah terbaru:",
+		browseByCategory: "📂 Jelajahi berdasarkan Kategori",
 	},
 
 	// Time
@@ -210,6 +233,107 @@ export const id: Translations = {
 		manageSubscriptions: "/subscriptions - Kelola langganan",
 		unsubscribeTopic: "/unsubscribe [id] - Hapus langganan",
 		loadMore: "/more - Muat lebih banyak hasil",
+	},
+
+	// Export
+	export: {
+		title: "📥 Ekspor Bookmark",
+		cancelled: "Ekspor dibatalkan.",
+		selectFormat: "Pilih format ekspor:",
+		generating: "Membuat ekspor...",
+		downloadReady: "Ekspor Anda siap!",
+		fileCaption: "📚 Bookmark Anda ({count} makalah)",
+	},
+
+	// Save paper
+	save: {
+		title: "📥 Simpan Makalah ke Bookmark",
+		usage: "Untuk menyimpan makalah, berikan ID atau URL arXiv:",
+		example: "/save 2301.00001\n/save https://arxiv.org/abs/2301.00001",
+		tip: "Anda juga dapat menyimpan makalah langsung dari hasil pencarian menggunakan tombol ☆ Simpan!",
+		fetching: "🔍 Mengambil makalah dari arXiv...",
+		success: "⭐ Makalah disimpan ke bookmark!",
+	},
+
+	// Author search
+	author: {
+		usage: "Penggunaan: /author <nama>",
+		example: "Contoh: /author Yoshua Bengio",
+		prompt: "🔍 Masukkan nama penulis untuk dicari:",
+		searching: '🔍 Mencari makalah oleh "{name}"...',
+		results: "Makalah oleh {name}",
+		noResults: 'Tidak ada makalah ditemukan untuk penulis "{name}".',
+	},
+
+	// Similar papers
+	similar: {
+		usage: "Penggunaan: /similar <arxiv_id>",
+		example: "Contoh: /similar 2301.00001",
+		hint: "Anda dapat menemukan ID arXiv di tautan makalah (contoh: arxiv.org/abs/2301.00001)",
+		searching: "🔍 Mencari makalah serupa...",
+		notFound: '❌ Tidak dapat menemukan makalah dengan ID "{arxivId}".',
+		noResults: "Tidak ada makalah serupa ditemukan.",
+		title: "📚 Makalah Serupa",
+	},
+
+	// Callback messages
+	callbacks: {
+		tooManyRequests: "Terlalu banyak permintaan. Silakan tunggu.",
+		pleaseStartFirst: "Silakan mulai bot terlebih dahulu dengan /start",
+		userNotFound:
+			"Pengguna tidak ditemukan. Silakan coba /start terlebih dahulu.",
+		subscriptionNotFound: "Langganan tidak ditemukan.",
+		couldNotFetchPaper: "Tidak dapat mengambil detail makalah.",
+		clearBookmarksHint:
+			"Untuk menghapus semua bookmark, gunakan perintah khusus.",
+		intervalUpdated: "✅ Interval diperbarui menjadi setiap {hours} jam.",
+	},
+
+	// Category browsing
+	categoryBrowse: {
+		loading: "🔍 Memuat makalah terbaru di {category}...",
+		noResults: "Tidak ada makalah ditemukan di kategori {category}.",
+	},
+
+	// Inline query
+	inlineQuery: {
+		typeToSearch: "Ketik minimal 3 karakter untuk mencari",
+		searchDescription: "Cari makalah penelitian di arXiv",
+		helpMessage:
+			"🔍 Gunakan bot ini untuk mencari makalah penelitian di arXiv!\n\nCukup ketik @NamaBotAnda diikuti dengan kueri pencarian Anda.",
+		noResults: 'Tidak ada makalah ditemukan untuk "{query}"',
+		tryDifferent: "Coba istilah pencarian yang berbeda",
+		searchFailed: "Pencarian gagal",
+		tryAgain: "Terjadi kesalahan. Silakan coba lagi.",
+	},
+
+	// General UI
+	ui: {
+		errorOccurred: "❌ Terjadi kesalahan. Silakan coba lagi nanti.",
+		paperCount: "Anda memiliki {count} makalah yang di-bookmark.",
+		yourSubscriptions: "📬 Langganan Anda",
+		tapToManage: "Ketuk topik untuk mengelola atau menghapusnya.",
+		settingsHeader: "⚙️ Pengaturan Langganan",
+		intervalLabel: "⏱️ Interval",
+		categoryLabel: "📂 Kategori",
+		selectFrequency: '⏱️ Pilih frekuensi pembaruan untuk "{topic}":',
+		exportPreparing: "📥 Menyiapkan ekspor {format}...",
+		exportSuccess: "✅ Ekspor {format} terkirim! Periksa file di atas.",
+		bibtexFormat: "BibTeX",
+		csvFormat: "CSV",
+		forLatex: "Untuk LaTeX dan manajer sitasi",
+		forSpreadsheets: "Untuk spreadsheet (Excel, Google Sheets)",
+		cancelButton: "❌ Batal",
+		viewBookmarksButton: "📚 Lihat Bookmark",
+	},
+
+	// Validation
+	validation: {
+		invalidArxivId: "❌ ID atau URL arXiv tidak valid.",
+		validFormats: "Format yang valid:",
+		alreadyBookmarked: "📌 Makalah ini sudah ada di bookmark Anda!",
+		useBookmarksToView:
+			"Gunakan /bookmarks untuk melihat makalah yang disimpan.",
 	},
 };
 

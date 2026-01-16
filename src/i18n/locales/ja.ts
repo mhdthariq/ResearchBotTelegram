@@ -45,6 +45,9 @@ export const ja: Translations = {
 		newSearch: "🔍 新規検索",
 		tip: "💡 ヒント：「AI」だけでなく「transformer attention mechanism」のような具体的な用語を使用してください",
 		searching: "🔍 論文を検索中...",
+		noMorePapers: "📭 このトピックの論文はこれ以上ありません。",
+		useSearchFirst: "まず/searchで論文を検索してください。",
+		loadingMore: "📚 「{topic}」の論文をさらに読み込み中...",
 	},
 
 	// Papers
@@ -57,6 +60,8 @@ export const ja: Translations = {
 		viewPdf: "📄 PDF",
 		viewArxiv: "🔗 arXiv",
 		moreAuthors: "+{count}名",
+		similarPapers: "📚 類似論文",
+		noSimilarFound: "類似の論文が見つかりませんでした。",
 	},
 
 	// Bookmarks
@@ -77,6 +82,9 @@ export const ja: Translations = {
 			"📌 この論文は既にブックマークに保存されています！\n\n/bookmarksで保存した論文を表示できます。",
 		couldNotLoad:
 			"❌ ブックマークを読み込めませんでした。もう一度お試しください。",
+		viewBookmarks: "📚 ブックマークを表示",
+		saveButton: "☆ 保存",
+		savedButton: "⭐ 保存済み",
 	},
 
 	// History
@@ -111,6 +119,10 @@ export const ja: Translations = {
 		addSubscription: "➕ 購読を追加",
 		noSubscriptions: "📭 購読がありません。",
 		useSubscribe: "/subscribe <トピック>で更新を受け取れます。",
+		settings: "⚙️ 購読設定",
+		topic: "📌 トピック",
+		category: "📂 カテゴリー",
+		selectToRemove: "削除する購読を選択してください：",
 	},
 
 	// Errors
@@ -126,6 +138,15 @@ export const ja: Translations = {
 		notFound: "❌ 見つかりませんでした。",
 		unauthorized: "🔒 この操作を実行する権限がありません。",
 		tryAgain: "後でもう一度お試しください。",
+		couldNotProcess:
+			"❌ リクエストを処理できませんでした。もう一度お試しください。",
+		couldNotFetch: "❌ 論文の詳細を取得できませんでした。",
+		couldNotSave: "❌ 論文を保存できませんでした。もう一度お試しください。",
+		couldNotExport:
+			"❌ ブックマークをエクスポートできませんでした。もう一度お試しください。",
+		couldNotSend:
+			"❌ エクスポートファイルを送信できませんでした。後でもう一度お試しください。",
+		invalidExportFormat: "❌ 無効なエクスポート形式です。",
 	},
 
 	// Buttons
@@ -142,6 +163,9 @@ export const ja: Translations = {
 		settings: "⚙️ 設定",
 		search: "🔍 検索",
 		searchPapers: "🔍 論文を検索",
+		loadMore: "📚 さらに読み込む",
+		abstract: "📖 要旨",
+		pdf: "📄 PDF",
 	},
 
 	// Stats
@@ -157,6 +181,7 @@ export const ja: Translations = {
 	categories: {
 		title: "📂 arXivカテゴリー",
 		select: "カテゴリーを選択して最新の論文を閲覧：",
+		browseByCategory: "📂 カテゴリーで閲覧",
 	},
 
 	// Time
@@ -211,6 +236,106 @@ export const ja: Translations = {
 		manageSubscriptions: "/subscriptions - 購読を管理",
 		unsubscribeTopic: "/unsubscribe [id] - 購読を解除",
 		loadMore: "/more - さらに結果を読み込む",
+	},
+
+	// Export
+	export: {
+		title: "📥 ブックマークをエクスポート",
+		cancelled: "エクスポートがキャンセルされました。",
+		selectFormat: "エクスポート形式を選択してください：",
+		generating: "エクスポートを生成中...",
+		downloadReady: "エクスポートの準備ができました！",
+		fileCaption: "📚 あなたのブックマーク（{count}件の論文）",
+	},
+
+	// Save paper
+	save: {
+		title: "📥 論文をブックマークに保存",
+		usage: "論文を保存するには、arXiv IDまたはURLを入力してください：",
+		example: "/save 2301.00001\n/save https://arxiv.org/abs/2301.00001",
+		tip: "検索結果から☆保存ボタンで直接保存することもできます！",
+		fetching: "🔍 arXivから論文を取得中...",
+		success: "⭐ 論文をブックマークに保存しました！",
+	},
+
+	// Author search
+	author: {
+		usage: "使用方法：/author <名前>",
+		example: "例：/author Yoshua Bengio",
+		prompt: "🔍 検索する著者名を入力してください：",
+		searching: "🔍 「{name}」の論文を検索中...",
+		results: "{name}の論文",
+		noResults: "著者「{name}」の論文が見つかりませんでした。",
+	},
+
+	// Similar papers
+	similar: {
+		usage: "使用方法：/similar <arxiv_id>",
+		example: "例：/similar 2301.00001",
+		hint: "arXiv IDは論文リンクで確認できます（例：arxiv.org/abs/2301.00001）",
+		searching: "🔍 類似論文を検索中...",
+		notFound: "❌ ID「{arxivId}」の論文が見つかりませんでした。",
+		noResults: "類似の論文が見つかりませんでした。",
+		title: "📚 類似論文",
+	},
+
+	// Callback messages
+	callbacks: {
+		tooManyRequests: "リクエストが多すぎます。お待ちください。",
+		pleaseStartFirst: "まず/startでボットを起動してください",
+		userNotFound: "ユーザーが見つかりません。/startをお試しください。",
+		subscriptionNotFound: "購読が見つかりません。",
+		couldNotFetchPaper: "論文の詳細を取得できませんでした。",
+		clearBookmarksHint:
+			"すべてのブックマークを削除するには、専用コマンドを使用してください。",
+		intervalUpdated: "✅ 間隔を{hours}時間ごとに更新しました。",
+	},
+
+	// Category browsing
+	categoryBrowse: {
+		loading: "🔍 {category}の最新論文を読み込み中...",
+		noResults: "カテゴリー{category}に論文が見つかりませんでした。",
+	},
+
+	// Inline query
+	inlineQuery: {
+		typeToSearch: "検索するには3文字以上入力してください",
+		searchDescription: "arXivで研究論文を検索",
+		helpMessage:
+			"🔍 このボットでarXivの研究論文を検索できます！\n\n@ボット名の後に検索クエリを入力してください。",
+		noResults: "「{query}」の論文が見つかりませんでした",
+		tryDifferent: "別の検索語をお試しください",
+		searchFailed: "検索に失敗しました",
+		tryAgain: "エラーが発生しました。もう一度お試しください。",
+	},
+
+	// General UI
+	ui: {
+		errorOccurred: "❌ エラーが発生しました。後でもう一度お試しください。",
+		paperCount: "{count}件の論文がブックマークされています。",
+		yourSubscriptions: "📬 あなたの購読",
+		tapToManage: "トピックをタップして管理または削除できます。",
+		settingsHeader: "⚙️ 購読設定",
+		intervalLabel: "⏱️ 間隔",
+		categoryLabel: "📂 カテゴリー",
+		selectFrequency: "⏱️「{topic}」の更新頻度を選択してください：",
+		exportPreparing: "📥 {format}エクスポートを準備中...",
+		exportSuccess:
+			"✅ {format}エクスポートを送信しました！上のファイルを確認してください。",
+		bibtexFormat: "BibTeX",
+		csvFormat: "CSV",
+		forLatex: "LaTeXと引用管理ツール用",
+		forSpreadsheets: "スプレッドシート用（Excel、Google Sheets）",
+		cancelButton: "❌ キャンセル",
+		viewBookmarksButton: "📚 ブックマークを表示",
+	},
+
+	// Validation
+	validation: {
+		invalidArxivId: "❌ 無効なarXiv IDまたはURLです。",
+		validFormats: "有効な形式：",
+		alreadyBookmarked: "📌 この論文は既にブックマークに保存されています！",
+		useBookmarksToView: "/bookmarksで保存した論文を表示できます。",
 	},
 };
 

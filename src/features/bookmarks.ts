@@ -17,6 +17,7 @@ import {
 	isBookmarked,
 } from "../db/repositories/index.js";
 import type { Bookmark } from "../db/schema.js";
+import { type LanguageCode, t } from "../i18n/index.js";
 import { extractArxivId, toBibTeX } from "../utils/export.js";
 import { logger } from "../utils/logger.js";
 
@@ -163,14 +164,16 @@ export function formatBookmarkMessage(
  *
  * @param bookmarks - Array of bookmarks
  * @param startIndex - Starting index for numbering
+ * @param lang - Language code for translations
  * @returns Formatted string
  */
 export function formatBookmarksListMessage(
 	bookmarks: Bookmark[],
 	startIndex = 0,
+	lang: LanguageCode | string = "en",
 ): string {
 	if (bookmarks.length === 0) {
-		return "📚 You don't have any bookmarks yet.\n\nUse the ⭐ button when viewing papers to save them!";
+		return t(lang, "bookmarks.empty");
 	}
 
 	return bookmarks
@@ -184,31 +187,33 @@ export function formatBookmarksListMessage(
  * @param page - Current page
  * @param hasMore - Whether there are more pages
  * @param total - Total number of bookmarks
+ * @param lang - Language code for translations
  * @returns InlineKeyboard
  */
 export function createBookmarksKeyboard(
 	page: number,
 	hasMore: boolean,
 	_total: number,
+	lang: LanguageCode | string = "en",
 ): InlineKeyboard {
 	const keyboard = new InlineKeyboard();
 
 	// Navigation row
 	if (page > 1) {
-		keyboard.text("⬅️ Previous", `bookmarks:page:${page - 1}`);
+		keyboard.text(t(lang, "buttons.previous"), `bookmarks:page:${page - 1}`);
 	}
 
 	keyboard.text(`📖 ${page}`, "bookmarks:noop");
 
 	if (hasMore) {
-		keyboard.text("Next ➡️", `bookmarks:page:${page + 1}`);
+		keyboard.text(t(lang, "buttons.next"), `bookmarks:page:${page + 1}`);
 	}
 
 	keyboard.row();
 
 	// Action row
-	keyboard.text("🔍 Search", "action:search");
-	keyboard.text("🗑️ Clear All", "bookmarks:clear");
+	keyboard.text(t(lang, "bookmarks.searchButton"), "action:search");
+	keyboard.text(t(lang, "bookmarks.clearAllButton"), "bookmarks:clear");
 
 	return keyboard;
 }
@@ -218,25 +223,27 @@ export function createBookmarksKeyboard(
  *
  * @param arxivId - arXiv ID of the paper
  * @param isCurrentlyBookmarked - Whether the paper is bookmarked
+ * @param lang - Language code for translations
  * @returns InlineKeyboard
  */
 export function createPaperActionsKeyboard(
 	arxivId: string,
 	isCurrentlyBookmarked: boolean,
+	lang: LanguageCode | string = "en",
 ): InlineKeyboard {
 	const keyboard = new InlineKeyboard();
 
-	keyboard.text("📖 Abstract", `abstract:${arxivId}`);
+	keyboard.text(t(lang, "buttons.abstract"), `abstract:${arxivId}`);
 
 	if (isCurrentlyBookmarked) {
-		keyboard.text("⭐ Saved", `unbookmark:${arxivId}`);
+		keyboard.text(t(lang, "bookmarks.savedButton"), `unbookmark:${arxivId}`);
 	} else {
-		keyboard.text("☆ Save", `bookmark:${arxivId}`);
+		keyboard.text(t(lang, "bookmarks.saveButton"), `bookmark:${arxivId}`);
 	}
 
 	keyboard.row();
-	keyboard.text("📥 BibTeX", `bibtex:${arxivId}`);
-	keyboard.text("📄 PDF", `pdf:${arxivId}`);
+	keyboard.text(t(lang, "buttons.bibtex"), `bibtex:${arxivId}`);
+	keyboard.text(t(lang, "buttons.pdf"), `pdf:${arxivId}`);
 
 	return keyboard;
 }

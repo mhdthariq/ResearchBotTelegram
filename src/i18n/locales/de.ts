@@ -43,6 +43,9 @@ export const de: Translations = {
 		newSearch: "🔍 Neue Suche",
 		tip: '💡 Tipp: Verwende spezifische Begriffe wie „transformer attention mechanism" statt nur „AI"',
 		searching: "🔍 Suche nach Arbeiten...",
+		noMorePapers: "📭 Keine weiteren Arbeiten zu diesem Thema gefunden.",
+		useSearchFirst: "Verwende zuerst /search um nach Arbeiten zu suchen.",
+		loadingMore: '📚 Lade weitere Arbeiten für "{topic}"...',
 	},
 
 	// Papers
@@ -55,6 +58,8 @@ export const de: Translations = {
 		viewPdf: "📄 PDF",
 		viewArxiv: "🔗 arXiv",
 		moreAuthors: "+{count} weitere",
+		similarPapers: "📚 Ähnliche Arbeiten",
+		noSimilarFound: "Keine ähnlichen Arbeiten gefunden.",
 	},
 
 	// Bookmarks
@@ -75,6 +80,9 @@ export const de: Translations = {
 			"📌 Diese Arbeit ist bereits in deinen Lesezeichen!\n\nVerwende /bookmarks um deine gespeicherten Arbeiten anzuzeigen.",
 		couldNotLoad:
 			"❌ Lesezeichen konnten nicht geladen werden. Bitte versuche es erneut.",
+		viewBookmarks: "📚 Lesezeichen anzeigen",
+		saveButton: "☆ Speichern",
+		savedButton: "⭐ Gespeichert",
 	},
 
 	// History
@@ -110,6 +118,10 @@ export const de: Translations = {
 		addSubscription: "➕ Abonnement hinzufügen",
 		noSubscriptions: "📭 Du hast keine Abonnements.",
 		useSubscribe: "Verwende /subscribe <Thema> um Updates zu erhalten.",
+		settings: "⚙️ Abonnement-Einstellungen",
+		topic: "📌 Thema",
+		category: "📂 Kategorie",
+		selectToRemove: "Wähle ein Abonnement zum Entfernen:",
 	},
 
 	// Errors
@@ -125,6 +137,16 @@ export const de: Translations = {
 		notFound: "❌ Nicht gefunden.",
 		unauthorized: "🔒 Du hast keine Berechtigung, diese Aktion durchzuführen.",
 		tryAgain: "Bitte versuche es später erneut.",
+		couldNotProcess:
+			"❌ Anfrage konnte nicht verarbeitet werden. Bitte versuche es erneut.",
+		couldNotFetch: "❌ Paper-Details konnten nicht abgerufen werden.",
+		couldNotSave:
+			"❌ Paper konnte nicht gespeichert werden. Bitte versuche es erneut.",
+		couldNotExport:
+			"❌ Lesezeichen konnten nicht exportiert werden. Bitte versuche es erneut.",
+		couldNotSend:
+			"❌ Export-Datei konnte nicht gesendet werden. Bitte versuche es später erneut.",
+		invalidExportFormat: "❌ Ungültiges Export-Format.",
 	},
 
 	// Buttons
@@ -141,6 +163,9 @@ export const de: Translations = {
 		settings: "⚙️ Einstellungen",
 		search: "🔍 Suchen",
 		searchPapers: "🔍 Arbeiten suchen",
+		loadMore: "📚 Mehr laden",
+		abstract: "📖 Zusammenfassung",
+		pdf: "📄 PDF",
 	},
 
 	// Stats
@@ -156,6 +181,7 @@ export const de: Translations = {
 	categories: {
 		title: "📂 arXiv-Kategorien",
 		select: "Wähle eine Kategorie, um aktuelle Arbeiten zu durchsuchen:",
+		browseByCategory: "📂 Nach Kategorie durchsuchen",
 	},
 
 	// Time
@@ -212,6 +238,107 @@ export const de: Translations = {
 		manageSubscriptions: "/subscriptions - Abonnements verwalten",
 		unsubscribeTopic: "/unsubscribe [id] - Abonnement entfernen",
 		loadMore: "/more - Mehr Ergebnisse laden",
+	},
+
+	// Export
+	export: {
+		title: "📥 Lesezeichen exportieren",
+		cancelled: "Export abgebrochen.",
+		selectFormat: "Export-Format auswählen:",
+		generating: "Export wird erstellt...",
+		downloadReady: "Dein Export ist bereit!",
+		fileCaption: "📚 Deine Lesezeichen ({count} Arbeiten)",
+	},
+
+	// Save paper
+	save: {
+		title: "📥 Paper zu Lesezeichen speichern",
+		usage: "Um ein Paper zu speichern, gib die arXiv-ID oder URL an:",
+		example: "/save 2301.00001\n/save https://arxiv.org/abs/2301.00001",
+		tip: "Du kannst Paper auch direkt aus den Suchergebnissen mit der ☆ Speichern-Schaltfläche speichern!",
+		fetching: "🔍 Paper wird von arXiv abgerufen...",
+		success: "⭐ Paper zu Lesezeichen hinzugefügt!",
+	},
+
+	// Author search
+	author: {
+		usage: "Verwendung: /author <Name>",
+		example: "Beispiel: /author Yoshua Bengio",
+		prompt: "🔍 Gib den Autorennamen ein:",
+		searching: '🔍 Suche nach Arbeiten von "{name}"...',
+		results: "Arbeiten von {name}",
+		noResults: 'Keine Arbeiten für Autor "{name}" gefunden.',
+	},
+
+	// Similar papers
+	similar: {
+		usage: "Verwendung: /similar <arxiv_id>",
+		example: "Beispiel: /similar 2301.00001",
+		hint: "Die arXiv-ID findest du in Paper-Links (z.B. arxiv.org/abs/2301.00001)",
+		searching: "🔍 Suche nach ähnlichen Arbeiten...",
+		notFound: '❌ Konnte kein Paper mit ID "{arxivId}" finden.',
+		noResults: "Keine ähnlichen Arbeiten gefunden.",
+		title: "📚 Ähnliche Arbeiten",
+	},
+
+	// Callback messages
+	callbacks: {
+		tooManyRequests: "Zu viele Anfragen. Bitte warte einen Moment.",
+		pleaseStartFirst: "Bitte starte den Bot zuerst mit /start",
+		userNotFound: "Benutzer nicht gefunden. Bitte versuche /start zuerst.",
+		subscriptionNotFound: "Abonnement nicht gefunden.",
+		couldNotFetchPaper: "Paper-Details konnten nicht abgerufen werden.",
+		clearBookmarksHint:
+			"Um alle Lesezeichen zu löschen, verwende einen dedizierten Befehl.",
+		intervalUpdated: "✅ Intervall auf alle {hours} Stunden aktualisiert.",
+	},
+
+	// Category browsing
+	categoryBrowse: {
+		loading: "🔍 Lade aktuelle Arbeiten in {category}...",
+		noResults: "Keine Arbeiten in Kategorie {category} gefunden.",
+	},
+
+	// Inline query
+	inlineQuery: {
+		typeToSearch: "Gib mindestens 3 Zeichen ein, um zu suchen",
+		searchDescription: "Suche nach Forschungsarbeiten auf arXiv",
+		helpMessage:
+			"🔍 Nutze diesen Bot, um Forschungsarbeiten auf arXiv zu suchen!\n\nGib einfach @BotName gefolgt von deiner Suchanfrage ein.",
+		noResults: 'Keine Arbeiten für "{query}" gefunden',
+		tryDifferent: "Versuche einen anderen Suchbegriff",
+		searchFailed: "Suche fehlgeschlagen",
+		tryAgain: "Ein Fehler ist aufgetreten. Bitte versuche es erneut.",
+	},
+
+	// General UI
+	ui: {
+		errorOccurred:
+			"❌ Ein Fehler ist aufgetreten. Bitte versuche es später erneut.",
+		paperCount: "Du hast {count} gespeicherte(s) Paper.",
+		yourSubscriptions: "📬 Deine Abonnements",
+		tapToManage: "Tippe auf ein Thema, um es zu verwalten oder zu entfernen.",
+		settingsHeader: "⚙️ Abonnement-Einstellungen",
+		intervalLabel: "⏱️ Intervall",
+		categoryLabel: "📂 Kategorie",
+		selectFrequency: '⏱️ Wähle die Aktualisierungshäufigkeit für "{topic}":',
+		exportPreparing: "📥 {format}-Export wird vorbereitet...",
+		exportSuccess: "✅ {format}-Export gesendet! Siehe die Datei oben.",
+		bibtexFormat: "BibTeX",
+		csvFormat: "CSV",
+		forLatex: "Für LaTeX und Literaturverwaltung",
+		forSpreadsheets: "Für Tabellenkalkulation (Excel, Google Sheets)",
+		cancelButton: "❌ Abbrechen",
+		viewBookmarksButton: "📚 Lesezeichen anzeigen",
+	},
+
+	// Validation
+	validation: {
+		invalidArxivId: "❌ Ungültige arXiv-ID oder URL.",
+		validFormats: "Gültige Formate:",
+		alreadyBookmarked: "📌 Diese Arbeit ist bereits in deinen Lesezeichen!",
+		useBookmarksToView:
+			"Verwende /bookmarks um deine gespeicherten Arbeiten anzuzeigen.",
 	},
 };
 
