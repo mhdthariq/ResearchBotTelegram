@@ -215,6 +215,40 @@ async function ensureUser(
 }
 
 /**
+ * Build the localized start menu message and keyboard
+ */
+function buildStartMenu(userLang: LanguageCode) {
+	const langName = LANGUAGE_NAMES[userLang];
+
+	const keyboard = new InlineKeyboard()
+		.text(`🔍 ${t(userLang, "menu.searchPapers")}`, "action:search")
+		.text(`📚 ${t(userLang, "menu.myBookmarks")}`, "action:bookmarks")
+		.row()
+		.text(`📜 ${t(userLang, "menu.history")}`, "action:history")
+		.text(`ℹ️ ${t(userLang, "menu.help")}`, "action:help")
+		.row()
+		.text(`🌐 Language (${langName})`, "action:language");
+
+	const message = format`
+👋 ${bold`${t(userLang, "menu.welcome")}`}
+
+${t(userLang, "menu.description")}
+
+${bold`${t(userLang, "menu.whatICan")}`}
+🔍 ${t(userLang, "menu.searchDesc")}
+⭐ ${t(userLang, "menu.bookmarkDesc")}
+📜 ${t(userLang, "menu.historyDesc")}
+📥 ${t(userLang, "menu.exportDesc")}
+
+${t(userLang, "menu.useButtons")}
+
+🌐 ${t(userLang, "menu.currentLanguage")} ${langName}
+      `;
+
+	return { message, keyboard };
+}
+
+/**
  * Create the bot instance
  */
 export const bot = new Bot(config.BOT_TOKEN)
@@ -260,35 +294,10 @@ export const bot = new Bot(config.BOT_TOKEN)
 		// Get user's language preference
 		const user = await findUserByChatId(context.chatId);
 		const userLang = (user?.language as LanguageCode) || "en";
-		const langName = LANGUAGE_NAMES[userLang];
 
-		const keyboard = new InlineKeyboard()
-			.text("🔍 Search Papers", "action:search")
-			.text("📚 My Bookmarks", "action:bookmarks")
-			.row()
-			.text("📜 History", "action:history")
-			.text("ℹ️ Help", "action:help")
-			.row()
-			.text(`🌐 Language (${langName})`, "action:language");
+		const { message, keyboard } = buildStartMenu(userLang);
 
-		return context.send(
-			format`
-👋 ${bold`Welcome to AI Research Assistant!`}
-
-I help you discover the latest research papers from arXiv.
-
-${bold`What I can do:`}
-🔍 Search for papers on any topic
-⭐ Bookmark papers for later
-📜 View your search history
-📥 Export citations (BibTeX)
-
-Use the buttons below or type commands directly!
-
-🌐 Current language: ${langName}
-      `,
-			{ reply_markup: keyboard },
-		);
+		return context.send(message, { reply_markup: keyboard });
 	})
 
 	.command("language", async (context) => {
@@ -886,35 +895,13 @@ ${t(userLang, "language.select")}
 					// Get user's language preference
 					const user = chatId ? await findUserByChatId(chatId) : null;
 					const userLang = (user?.language as LanguageCode) || "en";
-					const langName = LANGUAGE_NAMES[userLang];
 
-					const startKeyboard = new InlineKeyboard()
-						.text("🔍 Search Papers", "action:search")
-						.text("📚 My Bookmarks", "action:bookmarks")
-						.row()
-						.text("📜 History", "action:history")
-						.text("ℹ️ Help", "action:help")
-						.row()
-						.text(`🌐 Language (${langName})`, "action:language");
+					const { message: startMessage, keyboard: startKeyboard } =
+						buildStartMenu(userLang);
 
-					await context.message?.editText(
-						format`
-👋 ${bold`Welcome to AI Research Assistant!`}
-
-I help you discover the latest research papers from arXiv.
-
-${bold`What I can do:`}
-🔍 Search for papers on any topic
-⭐ Bookmark papers for later
-📜 View your search history
-📥 Export citations (BibTeX)
-
-Use the buttons below or type commands directly!
-
-🌐 Current language: ${langName}
-            `,
-						{ reply_markup: startKeyboard },
-					);
+					await context.message?.editText(startMessage, {
+						reply_markup: startKeyboard,
+					});
 					break;
 				}
 			}
@@ -954,36 +941,16 @@ Use the buttons below or type commands directly!
 				newLang,
 			});
 
-			// Show confirmation and return to start menu
-			const startKeyboard = new InlineKeyboard()
-				.text("🔍 Search Papers", "action:search")
-				.text("📚 My Bookmarks", "action:bookmarks")
-				.row()
-				.text("📜 History", "action:history")
-				.text("ℹ️ Help", "action:help")
-				.row()
-				.text(`🌐 Language (${langName})`, "action:language");
+			// Show confirmation and return to start menu with new language
+			const { message: newMessage, keyboard: newKeyboard } =
+				buildStartMenu(newLang);
 
-			await context.message?.editText(
-				format`
-${t(newLang, "language.changed", { language: langName })}
+			// Prepend the language changed confirmation
+			const confirmationMessage = `${t(newLang, "language.changed", { language: langName })}\n\n${newMessage}`;
 
-👋 ${bold`Welcome to AI Research Assistant!`}
-
-I help you discover the latest research papers from arXiv.
-
-${bold`What I can do:`}
-🔍 Search for papers on any topic
-⭐ Bookmark papers for later
-📜 View your search history
-📥 Export citations (BibTeX)
-
-Use the buttons below or type commands directly!
-
-🌐 Current language: ${langName}
-        `,
-				{ reply_markup: startKeyboard },
-			);
+			await context.message?.editText(confirmationMessage, {
+				reply_markup: newKeyboard,
+			});
 			return;
 		}
 

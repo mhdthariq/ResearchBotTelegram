@@ -130,6 +130,23 @@ export const zh: Translations = {
 		changed: "✅ 语言已更改为 {language}",
 		unavailable: "❌ 此语言暂不可用。使用英语。",
 	},
+
+	// Main menu
+	menu: {
+		welcome: "欢迎使用 AI Research Assistant！",
+		description: "我帮助您发现 arXiv 上的最新研究论文。",
+		whatICan: "我能做的：",
+		searchDesc: "搜索任意主题的论文",
+		bookmarkDesc: "收藏论文以便稍后阅读",
+		historyDesc: "查看搜索历史",
+		exportDesc: "导出引用（BibTeX）",
+		useButtons: "使用下方按钮或直接输入命令！",
+		currentLanguage: "当前语言：",
+		searchPapers: "搜索论文",
+		myBookmarks: "我的收藏",
+		history: "历史",
+		help: "帮助",
+	},
 };
 
 export default zh;

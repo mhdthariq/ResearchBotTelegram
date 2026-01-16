@@ -161,6 +161,23 @@ export interface Translations {
 		changed: string;
 		unavailable: string;
 	};
+
+	// Main menu
+	menu: {
+		welcome: string;
+		description: string;
+		whatICan: string;
+		searchDesc: string;
+		bookmarkDesc: string;
+		historyDesc: string;
+		exportDesc: string;
+		useButtons: string;
+		currentLanguage: string;
+		searchPapers: string;
+		myBookmarks: string;
+		history: string;
+		help: string;
+	};
 }
 
 /**

@@ -131,6 +131,24 @@ export const es: Translations = {
 		changed: "✅ Idioma cambiado a {language}",
 		unavailable: "❌ Este idioma no está disponible todavía. Usando inglés.",
 	},
+
+	// Main menu
+	menu: {
+		welcome: "¡Bienvenido a AI Research Assistant!",
+		description:
+			"Te ayudo a descubrir los últimos artículos de investigación de arXiv.",
+		whatICan: "Lo que puedo hacer:",
+		searchDesc: "Buscar artículos sobre cualquier tema",
+		bookmarkDesc: "Guardar artículos para después",
+		historyDesc: "Ver tu historial de búsqueda",
+		exportDesc: "Exportar citas (BibTeX)",
+		useButtons: "¡Usa los botones de abajo o escribe comandos directamente!",
+		currentLanguage: "Idioma actual:",
+		searchPapers: "Buscar Artículos",
+		myBookmarks: "Mis Marcadores",
+		history: "Historial",
+		help: "Ayuda",
+	},
 };
 
 export default es;

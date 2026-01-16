@@ -154,6 +154,24 @@ export const id: Translations = {
 		changed: "✅ Bahasa diubah ke {language}",
 		unavailable: "❌ Bahasa ini belum tersedia. Menggunakan Bahasa Inggris.",
 	},
+
+	// Main menu
+	menu: {
+		welcome: "Selamat datang di AI Research Assistant!",
+		description:
+			"Saya membantu Anda menemukan makalah penelitian terbaru dari arXiv.",
+		whatICan: "Yang bisa saya lakukan:",
+		searchDesc: "Mencari makalah tentang topik apa pun",
+		bookmarkDesc: "Menyimpan makalah untuk nanti",
+		historyDesc: "Melihat riwayat pencarian Anda",
+		exportDesc: "Mengekspor sitasi (BibTeX)",
+		useButtons: "Gunakan tombol di bawah atau ketik perintah langsung!",
+		currentLanguage: "Bahasa saat ini:",
+		searchPapers: "Cari Makalah",
+		myBookmarks: "Bookmark Saya",
+		history: "Riwayat",
+		help: "Bantuan",
+	},
 };
 
 export default id;

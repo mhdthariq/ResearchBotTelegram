@@ -137,6 +137,23 @@ export const ru: Translations = {
 		changed: "✅ Язык изменён на {language}",
 		unavailable: "❌ Этот язык пока недоступен. Используется английский.",
 	},
+
+	// Main menu
+	menu: {
+		welcome: "Добро пожаловать в AI Research Assistant!",
+		description: "Я помогаю вам находить последние научные статьи с arXiv.",
+		whatICan: "Что я умею:",
+		searchDesc: "Поиск статей по любой теме",
+		bookmarkDesc: "Сохранение статей на потом",
+		historyDesc: "Просмотр истории поиска",
+		exportDesc: "Экспорт цитат (BibTeX)",
+		useButtons: "Используйте кнопки ниже или вводите команды напрямую!",
+		currentLanguage: "Текущий язык:",
+		searchPapers: "Поиск статей",
+		myBookmarks: "Мои закладки",
+		history: "История",
+		help: "Помощь",
+	},
 };
 
 export default ru;

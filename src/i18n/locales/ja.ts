@@ -155,6 +155,23 @@ export const ja: Translations = {
 		changed: "✅ 言語を{language}に変更しました",
 		unavailable: "❌ この言語はまだ利用できません。英語を使用します。",
 	},
+
+	// Main menu
+	menu: {
+		welcome: "AI Research Assistantへようこそ！",
+		description: "arXivの最新研究論文の発見をお手伝いします。",
+		whatICan: "できること：",
+		searchDesc: "任意のトピックで論文を検索",
+		bookmarkDesc: "後で読むために論文をブックマーク",
+		historyDesc: "検索履歴を表示",
+		exportDesc: "引用文献をエクスポート（BibTeX）",
+		useButtons: "下のボタンを使用するか、コマンドを直接入力してください！",
+		currentLanguage: "現在の言語：",
+		searchPapers: "論文を検索",
+		myBookmarks: "ブックマーク",
+		history: "履歴",
+		help: "ヘルプ",
+	},
 };
 
 export default ja;

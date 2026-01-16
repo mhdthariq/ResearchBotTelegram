@@ -155,6 +155,24 @@ export const de: Translations = {
 		unavailable:
 			"❌ Diese Sprache ist noch nicht verfügbar. Englisch wird verwendet.",
 	},
+
+	// Main menu
+	menu: {
+		welcome: "Willkommen bei AI Research Assistant!",
+		description:
+			"Ich helfe dir, die neuesten Forschungsarbeiten von arXiv zu entdecken.",
+		whatICan: "Was ich kann:",
+		searchDesc: "Nach Arbeiten zu jedem Thema suchen",
+		bookmarkDesc: "Arbeiten für später speichern",
+		historyDesc: "Deinen Suchverlauf anzeigen",
+		exportDesc: "Zitate exportieren (BibTeX)",
+		useButtons: "Verwende die Schaltflächen unten oder gib Befehle direkt ein!",
+		currentLanguage: "Aktuelle Sprache:",
+		searchPapers: "Arbeiten suchen",
+		myBookmarks: "Meine Lesezeichen",
+		history: "Verlauf",
+		help: "Hilfe",
+	},
 };
 
 export default de;

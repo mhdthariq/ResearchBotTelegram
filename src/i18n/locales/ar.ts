@@ -152,6 +152,23 @@ export const ar: Translations = {
 		changed: "✅ تم تغيير اللغة إلى {language}",
 		unavailable: "❌ هذه اللغة غير متوفرة بعد. سيتم استخدام الإنجليزية.",
 	},
+
+	// Main menu
+	menu: {
+		welcome: "مرحباً بك في AI Research Assistant!",
+		description: "أساعدك في اكتشاف أحدث الأوراق البحثية من arXiv.",
+		whatICan: "ما يمكنني فعله:",
+		searchDesc: "البحث عن أوراق حول أي موضوع",
+		bookmarkDesc: "حفظ الأوراق للقراءة لاحقاً",
+		historyDesc: "عرض سجل البحث الخاص بك",
+		exportDesc: "تصدير الاستشهادات (BibTeX)",
+		useButtons: "استخدم الأزرار أدناه أو اكتب الأوامر مباشرة!",
+		currentLanguage: "اللغة الحالية:",
+		searchPapers: "البحث عن أوراق",
+		myBookmarks: "إشاراتي المرجعية",
+		history: "السجل",
+		help: "مساعدة",
+	},
 };
 
 export default ar;
