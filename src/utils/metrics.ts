@@ -243,8 +243,6 @@ export async function collectMetrics(): Promise<AppMetrics> {
 	try {
 		// Get database metrics (these may fail if DB is not configured)
 		let totalUsers = 0;
-		const _totalSearches = 0;
-		const _totalBookmarks = 0;
 		let activeSubscriptions = 0;
 
 		try {
@@ -313,45 +311,6 @@ export async function collectMetrics(): Promise<AppMetrics> {
 			},
 		};
 	}
-}
-
-/**
- * Track a search operation
- */
-export function trackSearch(_topic: string, resultsCount: number): void {
-	metricsStore.incrementCounter("searches_total");
-	metricsStore.recordHistogram("search_results_count", resultsCount);
-}
-
-/**
- * Track a bookmark operation
- */
-export function trackBookmark(action: "add" | "remove"): void {
-	metricsStore.incrementCounter("bookmarks_total", { action });
-}
-
-/**
- * Track an API call duration
- */
-export function trackApiCall(
-	endpoint: string,
-	durationMs: number,
-	success: boolean,
-): void {
-	metricsStore.incrementCounter("api_calls_total", {
-		endpoint,
-		success: String(success),
-	});
-	metricsStore.recordHistogram("api_call_duration_ms", durationMs, {
-		endpoint,
-	});
-}
-
-/**
- * Track a command execution
- */
-export function trackCommand(command: string): void {
-	metricsStore.incrementCounter("commands_total", { command });
 }
 
 /**

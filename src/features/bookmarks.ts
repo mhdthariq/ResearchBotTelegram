@@ -437,16 +437,3 @@ export async function formatCSVTablePreview(
 
 	return rows.join("\n");
 }
-
-/**
- * Get raw bookmarks data for export
- * Used for generating file content
- *
- * @param userId - Database user ID
- * @returns Array of bookmarks
- */
-export async function getBookmarksForExport(
-	userId: number,
-): Promise<Bookmark[]> {
-	return getUserBookmarks(userId, { limit: 1000 });
-}

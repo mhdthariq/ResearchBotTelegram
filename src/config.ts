@@ -17,7 +17,6 @@ interface Config {
 	DATABASE_AUTH_TOKEN?: string;
 	PORT: number;
 	NODE_ENV: "development" | "production";
-	PUBLIC_URL?: string;
 }
 
 class ConfigError extends Error {
@@ -71,10 +70,6 @@ function validateConfig(): Config {
 		);
 	}
 
-	// Optional: PUBLIC_URL for export download links
-	// In production, this should be the public URL where the bot is deployed
-	const PUBLIC_URL = process.env.PUBLIC_URL || undefined;
-
 	// Throw all errors at once
 	if (errors.length > 0) {
 		throw new ConfigError(
@@ -90,7 +85,6 @@ function validateConfig(): Config {
 		DATABASE_AUTH_TOKEN,
 		PORT,
 		NODE_ENV: NODE_ENV as "development" | "production",
-		PUBLIC_URL,
 	};
 }
 
@@ -100,27 +94,4 @@ export const config = validateConfig();
 // Helper to check if Redis is configured
 export function isRedisConfigured(): boolean {
 	return !!config.REDIS_URL;
-}
-
-// Helper to check if running in production
-export function isProduction(): boolean {
-	return config.NODE_ENV === "production";
-}
-
-// Helper to check if using a remote database (Turso)
-export function isRemoteDatabase(): boolean {
-	return (
-		config.DATABASE_URL.startsWith("libsql://") ||
-		config.DATABASE_URL.startsWith("https://")
-	);
-}
-
-// Helper to check if using a local file database
-export function isLocalDatabase(): boolean {
-	return config.DATABASE_URL.startsWith("file:");
-}
-
-// Helper to get the public URL for export links
-export function getPublicUrl(): string | null {
-	return config.PUBLIC_URL || null;
 }

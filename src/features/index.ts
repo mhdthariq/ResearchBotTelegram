@@ -17,14 +17,17 @@ export {
 	createPaperActionsKeyboard,
 	exportAllBookmarksToBibTeX,
 	exportAllBookmarksToCSV,
+	formatBibTeXPreview,
 	formatBookmarkMessage,
 	formatBookmarksListMessage,
+	formatCSVTablePreview,
 	getBookmarksPaginated,
 	getCSVHeader,
 	getExportBookmarkCount,
 	removeBookmark,
 	toggleBookmark,
 } from "./bookmarks.js";
+
 // Recommendations feature
 export {
 	extractKeywords,
@@ -34,6 +37,7 @@ export {
 	getSimilarPapers,
 	getSimilarPapersById,
 } from "./recommendations.js";
+
 // Search history feature
 export {
 	clearHistory,
@@ -49,6 +53,7 @@ export {
 	getTopSearches,
 	recordSearch,
 } from "./searchHistory.js";
+
 // Subscriptions feature
 export {
 	createIntervalKeyboard,

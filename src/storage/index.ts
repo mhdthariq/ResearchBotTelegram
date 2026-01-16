@@ -7,8 +7,4 @@
  * import { createRedisStorage, checkRedisConnection } from "./storage";
  */
 
-export {
-	checkRedisConnection,
-	createRedisStorage,
-	UpstashRedisStorage,
-} from "./redis.js";
+export { checkRedisConnection, createRedisStorage } from "./redis.js";
